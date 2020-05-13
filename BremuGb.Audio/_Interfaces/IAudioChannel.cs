@@ -1,5 +1,4 @@
-﻿
-namespace BremuGb.Audio
+﻿namespace BremuGb.Audio
 {
     public interface IAudioChannel
     {

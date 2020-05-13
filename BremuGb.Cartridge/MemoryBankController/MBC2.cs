@@ -1,5 +1,4 @@
-﻿
-namespace BremuGb.Cartridge.MemoryBankController
+﻿namespace BremuGb.Cartridge.MemoryBankController
 {
     class MBC2 : IMemoryBankController
     {

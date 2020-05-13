@@ -1,9 +1,8 @@
-﻿
-namespace BremuGb.Memory
+﻿namespace BremuGb.Memory
 {
     public interface IMemoryAccessDelegate
     {
-        public byte DelegateMemoryRead(byte currentByte);
-        public bool DelegateMemoryWrite(byte writtenByte);
+        public byte DelegateMemoryRead(ushort address);
+        public bool DelegateMemoryWrite(byte data);
     }
 }

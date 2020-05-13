@@ -1,5 +1,4 @@
-﻿
-namespace BremuGb.Clock
+﻿namespace BremuGb.Clock
 {
     class Timer
     {

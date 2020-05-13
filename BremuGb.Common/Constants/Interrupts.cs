@@ -1,5 +1,4 @@
-﻿
-namespace BremuGb.Common.Constants
+﻿namespace BremuGb.Common.Constants
 {
     static public class Interrupts
     {

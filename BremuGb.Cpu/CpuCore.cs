@@ -1,37 +1,75 @@
-﻿
-using BremuGb.Memory;
+﻿using BremuGb.Memory;
+using BremuGb.Common.Constants;
 
 namespace BremuGb.Cpu
 {
     public class CpuCore : ICpuCore
     {
-        private IRandomAccessMemory mainMemory;
+        private ICpuState _cpuState;
 
-        private ushort programCounter;
-        private ushort stackPointer;
+        private IRandomAccessMemory _mainMemory;
+        private IInstruction _currentInstruction;
 
-        private bool interruptMasterEnable;
-
-        private byte currentOpcode;
-
-        public CpuCore(IRandomAccessMemory mainMemory)
+        public CpuCore(IRandomAccessMemory mainMemory, ICpuState cpuState)
         {
-            this.mainMemory = mainMemory;
+            _mainMemory = mainMemory;
+            _cpuState = cpuState;
+
+            Reset();
         }
 
-        public void Clock()
-        {
-            throw new System.NotImplementedException();
+        public void ExecuteCpuCycle()
+        {   
+            //TODO: Implement HALT/STOP handling
+
+            _currentInstruction.ExecuteCycle(_cpuState, _mainMemory);
+
+            //check if fetch
+            if (_currentInstruction.IsFetchNecessary())
+            {
+                //check for interrupts
+                /*var interruptEnable = _mainMemory.ReadByte(MiscRegisters.c_InterruptEnable);
+                var interruptFlags = _mainMemory.ReadByte(MiscRegisters.c_InterruptEnable);
+
+                if (interruptEnable == 1) //change this
+                    LoadNextInterruptRoutine();
+                else*/
+                    LoadNextInstruction();
+            }
+
+            //delayed EI handling
+            if(_cpuState.ImeScheduled)
+            {
+                _cpuState.ImeScheduled = false;
+                _cpuState.InterruptMasterEnable = true;
+            }
         }
 
-        public void Initialize()
+        public void Reset()
         {
-            throw new System.NotImplementedException();
+            _cpuState.Reset();
+
+            //set initial memory registers
+
+            LoadNextInstruction();
         }
 
-        public void Run()
+        private void LoadNextInstruction()
         {
-            throw new System.NotImplementedException();
+            var nextOpcode = _mainMemory.ReadByte(_cpuState.ProgramCounter++);
+
+            if (_cpuState.InstructionPrefix)
+            {
+                _currentInstruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(nextOpcode);
+                _cpuState.InstructionPrefix = false;
+            }
+            else
+                _currentInstruction = InstructionDecoder.GetInstructionFromOpcode(nextOpcode);
+        }
+
+        private void LoadNextInterruptRoutine()
+        {
+
         }
     }
 }

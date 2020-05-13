@@ -1,5 +1,4 @@
-﻿
-namespace BremuGb.Cartridge
+﻿namespace BremuGb.Cartridge
 {
     public interface IMemoryBankController
     {

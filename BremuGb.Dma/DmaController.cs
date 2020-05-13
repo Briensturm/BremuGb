@@ -1,5 +1,4 @@
-﻿
-namespace BremuGb.Dma
+﻿namespace BremuGb.Dma
 {
     public class DmaController
     {
