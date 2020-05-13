@@ -19,8 +19,11 @@ namespace BremuGb.Cpu
         }
 
         public void ExecuteCpuCycle()
-        {   
+        {
             //TODO: Implement HALT/STOP handling
+
+            if (_currentInstruction == null)
+                LoadNextInstruction();
 
             _currentInstruction.ExecuteCycle(_cpuState, _mainMemory);
 
@@ -49,9 +52,10 @@ namespace BremuGb.Cpu
         {
             _cpuState.Reset();
 
-            //set initial memory registers
+            _currentInstruction = null;
 
-            LoadNextInstruction();
+            //set initial memory registers
+           
         }
 
         private void LoadNextInstruction()

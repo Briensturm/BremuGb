@@ -8,8 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BremuGb.Cartridge\BremuGb.Cartridge.csproj" />
     <ProjectReference Include="..\BremuGb.Cpu\BremuGb.Cpu.csproj" />
     <ProjectReference Include="..\BremuGb.Memory\BremuGb.Memory.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="testRom.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

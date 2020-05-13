@@ -969,6 +969,11 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0xFD)]
         public void Decoding_forbidden_instructions_throws_exception(byte opcode)
         {
+#if DEBUG
+            //allow DEBUG instruction in debug mode
+            if (opcode == 0xDD)
+                return;
+#endif
             Assert.Catch<InvalidOperationException>(() => InstructionDecoder.GetInstructionFromOpcode(opcode));
         }
     }
