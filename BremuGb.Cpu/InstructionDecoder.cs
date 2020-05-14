@@ -198,6 +198,10 @@ namespace BremuGb.Cpu
                     return new EI();
                 case 0xFE:
                     return new CPAD8();
+#if DEBUG
+                case 0xDD:
+                    return new DEBUG();
+#endif
                 default:
                     throw new InvalidOperationException($"Unknown opcode, unable to decode: 0x{opcode:X2}");
             }

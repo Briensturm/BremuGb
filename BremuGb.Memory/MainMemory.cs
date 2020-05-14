@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using BremuGb.Common.Constants;
+
 namespace BremuGb.Memory
 {
     public class MainMemory : IRandomAccessMemory
@@ -10,20 +12,10 @@ namespace BremuGb.Memory
 
         private Dictionary<ushort, byte> _undelegatedMemory = new Dictionary<ushort, byte>();
 
-        //remove later
         public MainMemory()
         {
-            //sample program
-            _undelegatedMemory.Add(0x0100, 0x06); // LD B,D8
-            _undelegatedMemory.Add(0x0101, 0x00); // initial data for B
-            _undelegatedMemory.Add(0x0102, 0x78); // LD A,B
-            _undelegatedMemory.Add(0x0103, 0x0E); // LD C,D8
-            _undelegatedMemory.Add(0x0104, 0x01); // data
-            _undelegatedMemory.Add(0x0105, 0x41); // LD B,C
-            _undelegatedMemory.Add(0x0106, 0x80); // ADD A,B
-            _undelegatedMemory.Add(0x0107, 0xC3); // JP D16
-            _undelegatedMemory.Add(0x0108, 0x06); // jump address lsb
-            _undelegatedMemory.Add(0x0109, 0x01); // jump address msb
+            /*_undelegatedMemory.Add(MiscRegisters.c_InterruptEnable, 0x0000);
+            _undelegatedMemory.Add(MiscRegisters.c_InterruptFlags, 0x0000);*/
         }
 
         public byte ReadByte(ushort address)
@@ -34,11 +26,14 @@ namespace BremuGb.Memory
             if (_undelegatedMemory.TryGetValue(address, out byte data))
                 return data;
 
-            throw new InvalidOperationException($"Unknown memory address 0x{address:X4}");
+            //Console.WriteLine($"Read from uninitialized undelegated memory address 0x{address:X2}");
+            return 0x00;
         }
 
         public void WriteByte(ushort address, byte data)
         {
+            //Console.WriteLine($"WriteByte memory address: 0x{address:X4}, data: 0x{data:X2}");
+
             if (_writeDelegates.TryGetValue(address, out IMemoryAccessDelegate writeDelegate))
                 writeDelegate.DelegateMemoryRead(address);
 

@@ -3,6 +3,9 @@ using System.Diagnostics;
 
 using BremuGb.Cpu;
 using BremuGb.Memory;
+using BremuGb.Cartridge.MemoryBankController;
+using BremuGb.Cartridge;
+using BremuGb.Cpu.Instructions;
 
 namespace bremugb.core
 {
@@ -10,9 +13,20 @@ namespace bremugb.core
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            TestPerformance();
+        }
 
-            ICpuCore cpuCore = new CpuCore(new MainMemory(), new CpuState());
+        private static void TestPerformance()
+        {
+            Console.WriteLine("Testing Performance...");
+
+            IRandomAccessMemory mainMemory = new MainMemory();
+            ICpuCore cpuCore = new CpuCore(mainMemory, new CpuState());
+
+            IRomLoader romLoader = new FileRomLoader("testRom.gb");
+            IMemoryBankController mbc = MBCFactory.CreateMBC(romLoader);
+
+            mainMemory.RegisterMemoryAccessDelegateReadRange(0x0000, 0x7FFF, mbc as IMemoryAccessDelegate);
 
             Stopwatch stopWatch = new Stopwatch();
             if (!Stopwatch.IsHighResolution)
@@ -25,13 +39,13 @@ namespace bremugb.core
 
             var cycles = 17556 * multiplier;
             while (cycle++ < cycles)
-            {                
+            {
                 cpuCore.ExecuteCpuCycle();
             }
 
             stopWatch.Stop();
 
-            Console.WriteLine($"RunTime: {100*stopWatch.ElapsedMilliseconds/(16.74*multiplier)}%");
+            Console.WriteLine($"RunTime: {100 * stopWatch.ElapsedMilliseconds / (16.74 * multiplier)}%");
         }
     }
 }
