@@ -5,6 +5,7 @@ using BremuGb.Cpu;
 using BremuGb.Memory;
 using BremuGb.Cartridge.MemoryBankController;
 using BremuGb.Cartridge;
+using BremuGb.Cpu.Instructions;
 
 namespace bremugb.core
 {
