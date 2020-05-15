@@ -12,6 +12,6 @@ namespace BremuGb.Cartridge.MemoryBankController
         }
 
         abstract public byte DelegateMemoryRead(ushort address);
-        abstract public bool DelegateMemoryWrite(byte data);
+        abstract public void DelegateMemoryWrite(ushort address, byte data);
     }
 }

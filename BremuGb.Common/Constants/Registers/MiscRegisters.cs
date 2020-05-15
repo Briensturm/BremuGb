@@ -2,7 +2,7 @@
 {
     public static class MiscRegisters
     {
-        public const ushort c_InterruptEnable = 0xFFFF;
-        public const ushort c_InterruptFlags = 0xFF0F;
+        public const ushort InterruptEnable = 0xFFFF;
+        public const ushort InterruptFlags = 0xFF0F;
     }
 }

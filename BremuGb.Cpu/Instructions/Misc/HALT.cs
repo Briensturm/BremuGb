@@ -1,4 +1,5 @@
 ﻿using BremuGb.Memory;
+using BremuGb.Common.Constants;
 
 namespace BremuGb.Cpu.Instructions
 {
@@ -8,7 +9,13 @@ namespace BremuGb.Cpu.Instructions
 
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
-            cpuState.HaltMode = true;
+            var interruptEnable = mainMemory.ReadByte(MiscRegisters.InterruptEnable);
+            var interruptFlags = mainMemory.ReadByte(MiscRegisters.InterruptEnable);
+
+            if (!cpuState.InterruptMasterEnable && (interruptEnable & interruptFlags & 0x1F) != 0)
+                cpuState.HaltBug = true;    
+            else
+                cpuState.HaltMode = true;
 
             base.ExecuteCycle(cpuState, mainMemory);
         }

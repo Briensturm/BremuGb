@@ -10,6 +10,7 @@
         public bool InterruptMasterEnable { get; set; }
         public bool ImeScheduled { get; set; }
         public bool HaltMode { get; set; }
+        public bool HaltBug { get; set; }
         public bool StopMode { get; set; }
         public bool InstructionPrefix { get; set; }
 

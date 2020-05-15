@@ -23,6 +23,7 @@
         public CpuRegisters Registers { get; } = new CpuRegisters();
         public bool InstructionPrefix { get; set; }
         public bool HaltMode { get; set; }
+        public bool HaltBug { get; set; }
         public bool StopMode { get; set; }
         public bool ImeScheduled { get; set; }
     }

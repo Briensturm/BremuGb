@@ -17,10 +17,10 @@ namespace BremuGb.Memory
 
         public byte ReadByte(ushort address)
         {
-            if (_dmaController.IsDmaRunning && address < 0xFF80 && address != 0xFFFF)
-                throw new InvalidOperationException($"Reading at 0x{address:X2} during dma transfer not allowed");
+            if (_dmaController.IsDmaRunning && address <= 0xFE9F && address >= 0xFE00)
+                throw new InvalidOperationException($"Reading at OAM address 0x{address:X2} during dma transfer not allowed");
 
-            if (address == VideoRegisters.c_DmaTransfer)
+            if (address == VideoRegisters.DmaTransfer)
                 return _dmaController.DmaRegister;
 
             return _mainMemory.ReadByte(address);
@@ -28,10 +28,10 @@ namespace BremuGb.Memory
 
         public void WriteByte(ushort address, byte data)
         {
-            if (_dmaController.IsDmaRunning && address < 0xFF80 && address != 0xFFFF)
-                throw new InvalidOperationException($"Writing at 0x{address:X2} during dma transfer not allowed");
+            if (_dmaController.IsDmaRunning && address <= 0xFE9F && address >= 0xFE00)
+                throw new InvalidOperationException($"Writing at OAM address 0x{address:X2} during dma transfer not allowed");
 
-            if (address == VideoRegisters.c_DmaTransfer)
+            if (address == VideoRegisters.DmaTransfer)
                 _dmaController.DmaRegister = data;
 
             _mainMemory.WriteByte(address, data);

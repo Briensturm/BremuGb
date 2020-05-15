@@ -41,27 +41,38 @@ namespace BremuGb.Cpu
 
         public void ExecuteCpuCycle()
         {        
-            //execute one cycle of the instructions, if not in halt/stop
+            //execute one cycle of the instruction, if not in halt/stop
             if(IsCpuRunning)
                 CurrentInstruction.ExecuteCycle(_cpuState, _mainMemory);
+
+            if (_cpuState.HaltBug)
+            {
+                CurrentInstruction = GetNextInstruction();
+                _cpuState.ProgramCounter--;
+                return;
+            }
 
             if (CurrentInstruction.IsFetchNecessary())
             {
                 //check for interrupts
-                var interruptInstruction = TryGetInterruptInstruction();
-
-                if (interruptInstruction != null)
+                var readyInterrupts = GetRequestedAndEnabledInterrupts();
+                if(readyInterrupts != 0)
                 {
-                    CurrentInstruction = interruptInstruction;
-
-                    //interrupts disable halt/stop, if any
-                    _cpuState.HaltMode = false;
-                    _cpuState.StopMode = false;
+                    //interrupts disable halt/stop (delayed by one cycle)
+                    if (_cpuState.HaltMode || _cpuState.StopMode)
+                    {
+                        CurrentInstruction = new NOP();
+                        _cpuState.HaltMode = false;
+                        _cpuState.StopMode = false;
+                    }
+                    else if (_cpuState.InterruptMasterEnable)
+                        CurrentInstruction = new LDISR(readyInterrupts);
+                    else
+                        CurrentInstruction = GetNextInstruction();
                 }
 
                 else if (IsCpuRunning)
                     CurrentInstruction = GetNextInstruction();
-                                    
             }                
 
             //delayed EI handling
@@ -95,18 +106,12 @@ namespace BremuGb.Cpu
             return InstructionDecoder.GetInstructionFromOpcode(nextOpcode);     
         }
 
-        //returns corresponding LDISR instruction if enabled interrupt occured, null otherwise
-        private IInstruction TryGetInterruptInstruction()
+        private byte GetRequestedAndEnabledInterrupts()
         {
-            var interruptEnable = _mainMemory.ReadByte(MiscRegisters.c_InterruptEnable);
-            var interruptFlags = _mainMemory.ReadByte(MiscRegisters.c_InterruptEnable);
+            var interruptEnable = _mainMemory.ReadByte(MiscRegisters.InterruptEnable);
+            var interruptFlags = _mainMemory.ReadByte(MiscRegisters.InterruptEnable);
 
-            var readyInterrupts = (byte)(interruptEnable & interruptFlags);
-
-            if (_cpuState.InterruptMasterEnable && readyInterrupts != 0)
-                return new LDISR(readyInterrupts);
-
-            return null;
+            return (byte)(interruptEnable & interruptFlags & 0x1F);
         }
     }
 }

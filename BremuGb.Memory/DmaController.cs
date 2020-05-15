@@ -6,6 +6,7 @@ namespace BremuGb.Memory
     {
         private IRandomAccessMemory _mainMemory;
         private byte _dmaRegister;
+        private bool _doSetupClock;
 
         private byte _currentAddressLsb;
 
@@ -28,6 +29,8 @@ namespace BremuGb.Memory
                 //initiate DMA transfer
                 IsDmaRunning = true;
                 _currentAddressLsb = 0x00;
+
+                _doSetupClock = true;
             }
         }
 
@@ -43,6 +46,12 @@ namespace BremuGb.Memory
         {
             if (!IsDmaRunning)
                 return;
+
+            if(_doSetupClock)
+            {
+                _doSetupClock = false;
+                return;
+            }
 
             //copy one byte per machine cycle
             var sourceByte = _mainMemory.ReadByte((ushort)((DmaRegister << 8) | _currentAddressLsb));

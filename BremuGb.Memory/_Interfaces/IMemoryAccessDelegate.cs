@@ -3,6 +3,6 @@
     public interface IMemoryAccessDelegate
     {
         public byte DelegateMemoryRead(ushort address);
-        public bool DelegateMemoryWrite(byte data);
+        public void DelegateMemoryWrite(ushort address, byte data);
     }
 }

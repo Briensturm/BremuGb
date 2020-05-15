@@ -2,10 +2,10 @@
 {
     static public class Frequencies
     {
-        public const int c_MainClock = 4194304;
+        public const int MainClock = 4194304;
 
-        public const int c_DotClock = c_MainClock;
-        public const int c_CpuCycleClock = c_MainClock / 4;
+        public const int DotClock = MainClock;
+        public const int CpuCycleClock = MainClock / 4;
 
 
     }
