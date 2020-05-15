@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9FD9343C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Cpu.Tests", "Tests\BremuGb.Cpu.Tests\BremuGb.Cpu.Tests.csproj", "{B134B345-FD78-4E85-9953-B54ADC684916}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BremuGb.Timer", "BremuGB.Timer\BremuGb.Timer.csproj", "{D61BFE7F-8C17-4B1D-9A55-EC02CC983C43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BremuGb.Timer", "BremuGb.Timer\BremuGb.Timer.csproj", "{D61BFE7F-8C17-4B1D-9A55-EC02CC983C43}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BremuGb.UI", "BremuGb.UI\BremuGb.UI.csproj", "{DC212856-358C-4C67-A009-D5F90B0EB1E1}"
 EndProject
