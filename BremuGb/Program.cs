@@ -7,7 +7,7 @@ namespace BremuGb.UI
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             //TestPerformance();
 
@@ -29,10 +29,8 @@ namespace BremuGb.UI
             };
             //gameWindowSettings.UpdateFrequency = 60;
 
-            using (var window = new Window(nativeWindowSettings, gameWindowSettings))
-            {
-                window.Run();
-            }
+            using var window = new Window(nativeWindowSettings, gameWindowSettings);
+            window.Run();
         }
 
         /*private static void TestPerformance()
