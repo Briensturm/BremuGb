@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Reflection.Emit;
 using BremuGb.Memory;
 
 namespace BremuGb.Cpu.Instructions
@@ -12,8 +12,18 @@ namespace BremuGb.Cpu.Instructions
 
         public InstructionBase(byte opcode = 0x00)
         {
+            //Console.WriteLine($"{GetType().Name}: 0x{_opcode:X2}");
+
             _remainingCycles = InstructionLength;
             _opcode = opcode;
+        }
+
+        public virtual void LogInfo()
+        {
+            if(_opcode == 0x00)
+                Console.WriteLine(GetType().Name);
+            else
+                Console.WriteLine($"{GetType().Name}: 0x{_opcode:X2}");
         }
 
         public virtual void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)

@@ -18,6 +18,23 @@ namespace BremuGb.Video
         private bool _statSignal;
         private byte _lycRegister;
 
+        public byte[] _screenBitmap;
+
+        internal byte ScrollX { get; private set; }
+        internal byte ScrollY { get; private set; }
+
+        private byte[] _tileData;
+        private byte[] _tileMap0;
+        private byte[] _tileMap1;
+
+        private bool _frameIsReady;
+
+        private byte LcdControl
+        {
+            get;
+            set;
+        }
+
         private byte LcdStatus
         {
             get
@@ -46,12 +63,16 @@ namespace BremuGb.Video
 
         public PPU(IRandomAccessMemory mainMemory)
         {
-            _mainMemory = mainMemory;
+            _mainMemory = mainMemory;            
 
-            
-
-            _ppuContext = new PPUContext(new Mode2());
+            _ppuContext = new PPUContext(new Mode2(), this);
             _ppuContext.VideoInterruptOccuredEvent += VideoInterruptOccured;
+
+            _tileMap0 = new byte[32*32];
+            _tileMap1 = new byte[32 * 32];
+            _tileData = new byte[6144];
+
+            _screenBitmap = new byte[Common.Constants.Video.ScreenWidth * Common.Constants.Video.ScreenHeight];
         }
 
         public void VideoInterruptOccured(int interruptType)
@@ -65,7 +86,14 @@ namespace BremuGb.Video
 
         public byte DelegateMemoryRead(ushort address)
         {
-            switch(address)
+            if (address >= 0x8000 && address <= 0x97FF)
+                return _tileData[address - 0x8000];
+            else if (address >= 0x9800 && address <= 0x9BFF)
+                return _tileMap0[address - 0x9800];
+            else if (address >= 0x9C00 && address <= 0x9FFF)
+                return _tileMap1[address - 0x9C00];
+
+            switch (address)
             {
                 case VideoRegisters.LcdStatus:
                     return LcdStatus;
@@ -77,6 +105,12 @@ namespace BremuGb.Video
                 case VideoRegisters.LineYCompare:
                     return _lycRegister;
 
+                case VideoRegisters.ScrollX:
+                    return ScrollX;
+
+                case VideoRegisters.ScrollY:
+                    return ScrollY;
+
                 default:
                     throw new InvalidOperationException($"0x{address:X2} is not a valid ppu address");
             }
@@ -84,27 +118,53 @@ namespace BremuGb.Video
 
         public void DelegateMemoryWrite(ushort address, byte data)
         {
-            switch (address)
+            if (address >= 0x8000 && address <= 0x97FF)
             {
-                case VideoRegisters.LcdStatus:
-                    LcdStatus = data;
+                //Console.WriteLine($"Writing tile data 0x{data:X2} at 0x{address:X2}");
+                _tileData[address - 0x8000] = data;
+            }
+            else if (address >= 0x9800 && address <= 0x9BFF)
+            {
+                //Console.WriteLine($"Writing tile map 0 data 0x{data:X2} at 0x{address:X2}");
+                _tileMap0[address - 0x9800] = data;                
+            }
+            else if (address >= 0x9C00 && address <= 0x9FFF)
+            {
+                //Console.WriteLine($"Writing tile map 1 data 0x{data:X2} at 0x{address:X2}");
+                _tileMap1[address - 0x9C00] = data;                
+            }
+            else
+            {
+                switch (address)
+                {
+                    case VideoRegisters.LcdStatus:
+                        LcdStatus = data;
 
-                    if (ShouldStatIrqBeRaised())
-                        RaiseStatInterrupt();
-                    break;
+                        if (ShouldStatIrqBeRaised())
+                            RaiseStatInterrupt();
+                        break;
 
-                case VideoRegisters.LineY:
-                    break;
+                    case VideoRegisters.LineY:
+                        break;
 
-                case VideoRegisters.LineYCompare:
-                    _lycRegister = data;
+                    case VideoRegisters.LineYCompare:
+                        _lycRegister = data;
 
-                    if (ShouldStatIrqBeRaised())
-                        RaiseStatInterrupt();
-                    break;
+                        if (ShouldStatIrqBeRaised())
+                            RaiseStatInterrupt();
+                        break;
 
-                default:
-                    throw new InvalidOperationException($"0x{address:X2} is not a valid ppu address");
+                    case VideoRegisters.ScrollX:
+                        ScrollX = data;
+                        break;
+
+                    case VideoRegisters.ScrollY:
+                        ScrollY = data;
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"0x{address:X2} is not a valid ppu address");
+                }
             }
         }
 
@@ -113,12 +173,20 @@ namespace BremuGb.Video
             return _ppuContext.GetLineNumber() == _lycRegister ? 1 : 0;
         }
 
-        public void AdvanceMachineCycle()
+        public bool AdvanceMachineCycle()
         {
             _ppuContext.AdvanceMachineCycle();
 
             if (ShouldStatIrqBeRaised())
                 RaiseStatInterrupt();
+
+            if(_frameIsReady)
+            {
+                _frameIsReady = false;
+                return true;
+            }
+
+            return false;
         }
 
         private void RaiseStatInterrupt()
@@ -150,5 +218,50 @@ namespace BremuGb.Video
 
             return raiseStatIrq;
         }
+
+        internal int GetBackgroundPixel(byte x, byte y)
+        {
+            int tileX = x / 8;
+            int tileY = y / 8;
+
+            int tileOffsetX = x % 8;
+            int tileOffsetY = y % 8;
+
+            //todo: select active tilemap
+            var tileIndex = (sbyte)_tileMap0[tileX + tileY*32];
+
+            //get tile data
+            var tileData0 = _tileData[0x1000 + (tileIndex << 4) + tileOffsetY * 2];
+            var tileData1 = _tileData[0x1000 + (tileIndex << 4) + tileOffsetY * 2 + 1];
+
+            var msbSet = (tileData0 & (0x80 >> tileOffsetX)) > 0;
+            var lsbSet = (tileData1 & (0x80 >> tileOffsetX)) > 0;
+
+            return (msbSet ? 0x2 : 0) | (lsbSet ? 0x1 : 0);
+
+            //todo: check tile addressing mode
+
+        }
+
+        internal void WritePixel(int shade, int x, int y)
+        {
+            //todo: handle palette?  
+
+            _screenBitmap[y * 160 + x] = (byte)shade;
+
+            //if (shade != 0)
+                //Console.WriteLine("pixel " + x + " " + y + " in shade " + shade);
+        }
+
+        internal void RaiseNextFrameIsReadyEvent()
+        {
+            NextFrameIsReadyEvent?.Invoke(_screenBitmap);
+
+            _frameIsReady = true;
+        }
+
+        public delegate void NextFrameIsReady(byte[] frameBitmap);
+
+        public event NextFrameIsReady NextFrameIsReadyEvent;
     }
 }

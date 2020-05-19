@@ -35,11 +35,15 @@ namespace BremuGb.Memory
             //Console.WriteLine($"WriteByte memory address: 0x{address:X4}, data: 0x{data:X2}");
 
             if (_writeDelegates.TryGetValue(address, out IMemoryAccessDelegate writeDelegate))
-                writeDelegate.DelegateMemoryRead(address);
+            {
+                writeDelegate.DelegateMemoryWrite(address, data);
+                return;
+            }
 
             switch(address)
             {
                 default:
+                    //Console.WriteLine($"WriteByte undelegated memory address: 0x{address:X4}, data: 0x{data:X2}");
                     _undelegatedMemory[address] = data;
                     break;
             }            

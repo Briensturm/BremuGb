@@ -56,7 +56,7 @@ namespace BremuGb.Cpu
             {
                 //check for interrupts
                 var readyInterrupts = GetRequestedAndEnabledInterrupts();
-                if(readyInterrupts != 0)
+                if(readyInterrupts != 0 && !_cpuState.InstructionPrefix)
                 {
                     //interrupts disable halt/stop (delayed by one cycle)
                     if (_cpuState.HaltMode || _cpuState.StopMode)
@@ -109,7 +109,7 @@ namespace BremuGb.Cpu
         private byte GetRequestedAndEnabledInterrupts()
         {
             var interruptEnable = _mainMemory.ReadByte(MiscRegisters.InterruptEnable);
-            var interruptFlags = _mainMemory.ReadByte(MiscRegisters.InterruptEnable);
+            var interruptFlags = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
 
             return (byte)(interruptEnable & interruptFlags & 0x1F);
         }

@@ -3,16 +3,15 @@
     public class PPUContext
     {
         private PPUStateBase _state;
-
-        private byte[] _screenBitmap;
+        internal PPU PPU { get; private set; }        
 
         public int _lineCounter = 0;
 
-        public PPUContext(PPUStateBase state)
+        public PPUContext(PPUStateBase state, PPU ppu)
         {
-            TransitionTo(state);
+            PPU = ppu;
 
-            _screenBitmap = new byte[Common.Constants.Video.ScreenWidth * Common.Constants.Video.ScreenHeight];
+            TransitionTo(state);            
         }
 
         public void TransitionTo(PPUStateBase state)
@@ -31,12 +30,7 @@
         public int GetStateNumber()
         {
             return _state.GetStateNumber();
-        }
-
-        public void WritePixels(int pixel0, int pixel1, int pixel2, int pixel3, int offset)
-        {
-            
-        }
+        }        
 
         public int GetLineNumber()
         {

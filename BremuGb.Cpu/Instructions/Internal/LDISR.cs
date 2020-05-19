@@ -33,6 +33,8 @@ namespace BremuGb.Cpu.Instructions
                     //vblank interrupt
                     if ((_readyInterrupts & 0x01) == 0x01)
                     {
+                        //Console.WriteLine("Loading vblank isr...");
+
                         cpuState.ProgramCounter = Interrupts.VblankInterrupt;
 
                         mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(interruptFlags & 0xFE));
@@ -41,6 +43,8 @@ namespace BremuGb.Cpu.Instructions
                     //lcd stat interrupt
                     else if ((_readyInterrupts & 0x02) == 0x02)
                     {
+                        //Console.WriteLine("Loading lcd stat isr...");
+
                         cpuState.ProgramCounter = Interrupts.LcdInterrupt;
 
                         //clear interrupt flag
@@ -50,6 +54,8 @@ namespace BremuGb.Cpu.Instructions
                     //timer interrupt
                     else if ((_readyInterrupts & 0x04) == 0x04)
                     {
+                        //Console.WriteLine("Loading timer isr...");
+
                         cpuState.ProgramCounter = Interrupts.TimerInterrupt;
 
                         //clear interrupt flag

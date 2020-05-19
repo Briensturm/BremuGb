@@ -4,7 +4,6 @@
     {
         private int _dotCounter = 0;
 
-
         public override void AdvanceMachineCycle()
         {
             _dotCounter += 4;
@@ -17,6 +16,9 @@
                 {
                     _context.TransitionTo(new Mode1());
                     _context.RaiseVideoInterruptOccuredEvent(0);
+
+                    //screen can be drawn now
+                    _context.PPU.RaiseNextFrameIsReadyEvent();
                 }
                 else
                     _context.TransitionTo(new Mode2());                    

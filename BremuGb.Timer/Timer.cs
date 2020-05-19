@@ -56,6 +56,7 @@ namespace BremuGb.Timer
             switch (address)
             {
                 case TimerRegisters.Divider:
+                    Console.WriteLine($"Write timer divider: 0x{data:X2}");
                     var oldDiv = _div;
                     _div = 0;
 
@@ -64,6 +65,7 @@ namespace BremuGb.Timer
                     break;
 
                 case TimerRegisters.Timer:
+                    Console.WriteLine($"Write timer register: 0x{data:X2}");
                     if (_loadTimaFromTmaCycle)
                         return;
 
@@ -72,10 +74,14 @@ namespace BremuGb.Timer
                     break;
 
                 case TimerRegisters.TimerLoad:
+                    Console.WriteLine($"Write tma: 0x{data:X2}");
+
                     _tma = data;
                     break;
 
                 case TimerRegisters.TimerControl:
+                    Console.WriteLine($"Write timer control: 0x{data:X2}");
+
                     var oldMuxOut = TimerEnabled && ((_div >> GetControlBit()) & 0x01) == 0x01;
                     _tac = data;
 
@@ -122,7 +128,7 @@ namespace BremuGb.Timer
         }
 
         private void IncrementTima()
-        {
+        { 
             _tima++;
 
             if (_tima == 0)
