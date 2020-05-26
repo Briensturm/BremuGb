@@ -4,6 +4,7 @@ using OpenToolkit.Windowing.Desktop;
 using OpenToolkit.Windowing.Common.Input;
 using OpenToolkit.Windowing.Common;
 using OpenToolkit.Graphics.OpenGL;
+using BremuGb.Input;
 
 namespace BremuGb.UI
 {
@@ -88,9 +89,13 @@ namespace BremuGb.UI
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
+            //todo: separate render and update handlers
+
+            var joypadState = GetJoypadState();
+
             for (int i = 0; i < 17556; i++)
             {
-                var nextFrameReady = _gameBoy.AdvanceMachineCycle();
+                var nextFrameReady = _gameBoy.AdvanceMachineCycle(joypadState);
 
                 if (nextFrameReady)
                     UpdateTexture(_gameBoy.GetScreen());
@@ -132,6 +137,30 @@ namespace BremuGb.UI
             base.OnMinimized(e);
 
             GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
+        }
+
+        private JoypadState GetJoypadState()
+        {
+            JoypadState joypadState = 0;
+
+            if (KeyboardState.IsKeyDown(Key.Enter))
+                joypadState |= JoypadState.Start;
+            if (KeyboardState.IsKeyDown(Key.BackSpace))
+                joypadState |= JoypadState.Select;
+            if (KeyboardState.IsKeyDown(Key.A))
+                joypadState |= JoypadState.A;
+            if (KeyboardState.IsKeyDown(Key.B))
+                joypadState |= JoypadState.B;
+            if (KeyboardState.IsKeyDown(Key.Left))
+                joypadState |= JoypadState.Left;
+            if (KeyboardState.IsKeyDown(Key.Right))
+                joypadState |= JoypadState.Right;
+            if (KeyboardState.IsKeyDown(Key.Up))
+                joypadState |= JoypadState.Up;
+            if (KeyboardState.IsKeyDown(Key.Down))
+                joypadState |= JoypadState.Down;
+
+            return joypadState;
         }
     }
 }

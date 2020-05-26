@@ -4,6 +4,7 @@ using BremuGb.Common;
 using BremuGb.Cpu;
 using BremuGb.Memory;
 using BremuGb.Video;
+using BremuGb.Input;
 
 namespace BremuGb
 {
@@ -14,6 +15,7 @@ namespace BremuGb
         private readonly PPU _ppu;
         private readonly Timer _timer;        
         private readonly DmaController _dmaController;
+        private readonly Joypad _joypad;
 
         private readonly Logger _logger;
         
@@ -28,6 +30,7 @@ namespace BremuGb
             
             _timer = new Timer(mainMemory);
             _ppu = new PPU(mainMemory, _logger);
+            _joypad = new Joypad();
 
             _cpuCore = new CpuCore(mainMemoryProxy, new CpuState(), _logger);
 
@@ -37,10 +40,13 @@ namespace BremuGb
             mainMemoryProxy.RegisterMemoryAccessDelegate(mbc as IMemoryAccessDelegate);
             mainMemory.RegisterMemoryAccessDelegate(_ppu);
             mainMemory.RegisterMemoryAccessDelegate(_timer);
+            mainMemory.RegisterMemoryAccessDelegate(_joypad);
         }
 
-        public bool AdvanceMachineCycle()
+        public bool AdvanceMachineCycle(JoypadState joypadState)
         {
+            _joypad.SetJoypadState(joypadState);
+
             _cpuCore.AdvanceMachineCycle();
 
             _dmaController.AdvanceMachineCycle();

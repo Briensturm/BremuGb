@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BremuGb.Cartridge\BremuGb.Cartridge.csproj" />
     <ProjectReference Include="..\BremuGb.Cpu\BremuGb.Cpu.csproj" />
+    <ProjectReference Include="..\BremuGb.Input\BremuGb.Input.csproj" />
     <ProjectReference Include="..\BremuGb.Memory\BremuGb.Memory.csproj" />
     <ProjectReference Include="..\BremuGb.Timer\BremuGb.Timer.csproj" />
     <ProjectReference Include="..\BremuGb.Video\BremuGb.Video.csproj" />
