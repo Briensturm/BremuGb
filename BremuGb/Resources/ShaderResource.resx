@@ -121,6 +121,9 @@
   <data name="FragmentShader" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Shader\FragmentShader.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="Icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Icon.ico;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="VertexShader" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Shader\VertexShader.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>

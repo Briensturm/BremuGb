@@ -18,7 +18,8 @@ namespace BremuGb.Cartridge.MemoryBankController
 
         public override void DelegateMemoryWrite(ushort address, byte data)
         {
-            throw new System.NotImplementedException("MBC0: Memory write not implemented for now");
+            //todo?
+            //throw new System.NotImplementedException("MBC0: Memory write not implemented for now");
         }
     }
 }

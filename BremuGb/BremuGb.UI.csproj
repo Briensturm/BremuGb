@@ -31,13 +31,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="halt_ime0_nointr_timing.gb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="halt_ime1_timing2-GS.gb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Shader\FragmentShader.txt">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Shader\VertexShader.txt">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <None Update="testRom.gb">
+    <None Update="testRom0.gb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

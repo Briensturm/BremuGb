@@ -17,16 +17,17 @@ namespace BremuGb.Cpu.Instructions
                 case 1:
                     var oldValue = cpuState.Registers.A;
 
-                    cpuState.Registers.A += _addData;
-
+                    int result = cpuState.Registers.A + _addData;
                     if (cpuState.Registers.CarryFlag)
-                        cpuState.Registers.A++;
+                        result++;
+
+                    cpuState.Registers.A = (byte)result;
 
                     cpuState.Registers.SubtractionFlag = false;
                     cpuState.Registers.ZeroFlag = cpuState.Registers.A == 0;
-                    cpuState.Registers.HalfCarryFlag = _addData + (cpuState.Registers.CarryFlag ? 1 : 0) > (0xF - (oldValue & 0xF));
-                    
-                    cpuState.Registers.CarryFlag = cpuState.Registers.A < oldValue;
+                    cpuState.Registers.HalfCarryFlag = (((oldValue & 0xF) + (_addData & 0xF)
+                                                + (cpuState.Registers.CarryFlag ? 1 : 0)) & 0x10) == 0x10;
+                    cpuState.Registers.CarryFlag = result > 0xFF;
 
                     break;
             }

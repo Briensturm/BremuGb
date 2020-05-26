@@ -1,14 +1,20 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 
 using BremuGb.Memory;
+using BremuGb.Common;
 using BremuGb.Common.Constants;
+
 
 namespace BremuGb.Video
 {
     public class PPU : IMemoryAccessDelegate
     {
-        PPUContext _ppuContext;
-        IRandomAccessMemory _mainMemory;
+        readonly PPUContext _ppuContext;
+        readonly IRandomAccessMemory _mainMemory;
+
+        private readonly Logger _logger;
 
         private int _coincidenceInterrupt;
         private int _oamInterrupt;
@@ -23,16 +29,63 @@ namespace BremuGb.Video
         internal byte ScrollX { get; private set; }
         internal byte ScrollY { get; private set; }
 
-        private byte[] _tileData;
-        private byte[] _tileMap0;
-        private byte[] _tileMap1;
+        private readonly byte[] _tileData;
+        private readonly byte[] _tileMap0;
+        private readonly byte[] _tileMap1;
 
-        private bool _frameIsReady;
+        public bool _frameIsReady;
+        private int _lcdEnable;
 
+        private void SetLcdEnable(int value)
+        {
+            _lcdEnable = value;
+
+            if (value == 0)
+            {
+                _ppuContext._lineCounter = 0;
+                _ppuContext.TransitionTo(new Mode2());
+
+                for (int i = 0; i < _screenBitmap.Length; i++)
+                {
+                    _screenBitmap[i] = 0;
+                }
+
+                _frameIsReady = true;
+            }
+        }
+        private int _windowTileMap;
+        private int _windowDisplayEnable;
+        private int _bgWindowTileData;
+        private int _bgTileMap;
+
+
+        //todo: bits for sprite stuff
         private byte LcdControl
         {
-            get;
-            set;
+            get
+            {
+                return (byte)(_lcdEnable << 7 |
+                            (_windowTileMap << 6) |
+                            (_windowDisplayEnable << 5) |
+                            (_bgWindowTileData << 4) |
+                            (_bgTileMap << 3));
+            }
+            set
+            {
+                SetLcdEnable((value >> 7) & 0x01);
+                _windowTileMap = (value >> 6) & 0x01;
+                _windowDisplayEnable = (value >> 5) & 0x01;
+                _bgWindowTileData = (value >> 4) & 0x01;
+                _bgTileMap = (value >> 3) & 0x01;
+            }
+        }
+
+        private int GetPpuState()
+        {
+            if (_lcdEnable == 1)
+                return _ppuContext.GetStateNumber();
+            else
+                return 0;
         }
 
         private byte LcdStatus
@@ -45,9 +98,7 @@ namespace BremuGb.Video
                             (_vblankInterrupt << 4) |
                             (_hblankInterrupt << 3) |
                             (CheckLyCoincidence() << 2) |
-                            _ppuContext.GetStateNumber());
-
-                //TODO: state return 0 when lcd off
+                            GetPpuState());              
             }
 
             set
@@ -56,14 +107,13 @@ namespace BremuGb.Video
                 _oamInterrupt = (value >> 5) & 0x01;
                 _vblankInterrupt = (value >> 4) & 0x01;
                 _hblankInterrupt = (value >> 3) & 0x01;
-
-
             }
         }
 
-        public PPU(IRandomAccessMemory mainMemory)
+        public PPU(IRandomAccessMemory mainMemory, Logger logger)
         {
-            _mainMemory = mainMemory;            
+            _mainMemory = mainMemory;
+            _logger = logger;
 
             _ppuContext = new PPUContext(new Mode2(), this);
             _ppuContext.VideoInterruptOccuredEvent += VideoInterruptOccured;
@@ -73,15 +123,29 @@ namespace BremuGb.Video
             _tileData = new byte[6144];
 
             _screenBitmap = new byte[Common.Constants.Video.ScreenWidth * Common.Constants.Video.ScreenHeight];
+
+            LcdControl = 0x91;
         }
 
-        public void VideoInterruptOccured(int interruptType)
+        public IEnumerable<ushort> GetDelegatedAddresses()
         {
-            //request vblank interrupt
-            var currentIf = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
-            _mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(currentIf | 0x01));
+            var addressList = new List<ushort>();
 
-            //todo: request interrupt, but not if IF is executed
+            var videoRegisterAddresses = new ushort[] { VideoRegisters.LcdControl,
+                                                         VideoRegisters.LcdStatus,
+                                                         VideoRegisters.LineY,
+                                                         VideoRegisters.ScrollX,
+                                                         VideoRegisters.ScrollY,
+                                                         VideoRegisters.LineYCompare};
+
+            var vramAddresses = new ushort[0x9C00 - 0x8000 + 1];
+            for (int i = 0; i < vramAddresses.Length; i++)
+                vramAddresses[i] = (ushort)(i + 0x8000);
+
+            addressList.AddRange(videoRegisterAddresses);
+            addressList.AddRange(vramAddresses);
+
+            return addressList.AsEnumerable();
         }
 
         public byte DelegateMemoryRead(ushort address)
@@ -93,50 +157,47 @@ namespace BremuGb.Video
             else if (address >= 0x9C00 && address <= 0x9FFF)
                 return _tileMap1[address - 0x9C00];
 
-            switch (address)
+            return address switch
             {
-                case VideoRegisters.LcdStatus:
-                    return LcdStatus;
-
-                case VideoRegisters.LineY:
-                    //todo: force 0 when LCD is off
-                    return (byte)_ppuContext.GetLineNumber();
-
-                case VideoRegisters.LineYCompare:
-                    return _lycRegister;
-
-                case VideoRegisters.ScrollX:
-                    return ScrollX;
-
-                case VideoRegisters.ScrollY:
-                    return ScrollY;
-
-                default:
-                    throw new InvalidOperationException($"0x{address:X2} is not a valid ppu address");
-            }
+                VideoRegisters.LcdStatus => LcdStatus,
+                VideoRegisters.LcdControl => LcdControl,
+                VideoRegisters.LineY => (byte)_ppuContext.GetLineNumber(),//todo: force 0 when LCD is off
+                VideoRegisters.LineYCompare => _lycRegister,
+                VideoRegisters.ScrollX => ScrollX,
+                VideoRegisters.ScrollY => ScrollY,
+                _ => throw new InvalidOperationException($"0x{address:X2} is not a valid ppu address"),
+            };
         }
 
         public void DelegateMemoryWrite(ushort address, byte data)
         {
             if (address >= 0x8000 && address <= 0x97FF)
             {
-                //Console.WriteLine($"Writing tile data 0x{data:X2} at 0x{address:X2}");
+                _logger.Log($"Writing tile data 0x{data:X2} at 0x{address:X2}");
                 _tileData[address - 0x8000] = data;
             }
             else if (address >= 0x9800 && address <= 0x9BFF)
             {
-                //Console.WriteLine($"Writing tile map 0 data 0x{data:X2} at 0x{address:X2}");
-                _tileMap0[address - 0x9800] = data;                
+                _logger.Log($"Writing tile map 0 data 0x{data:X2} at 0x{address:X2}");
+                _tileMap0[address - 0x9800] = data;
             }
             else if (address >= 0x9C00 && address <= 0x9FFF)
             {
-                //Console.WriteLine($"Writing tile map 1 data 0x{data:X2} at 0x{address:X2}");
-                _tileMap1[address - 0x9C00] = data;                
+                _logger.Log($"Writing tile map 1 data 0x{data:X2} at 0x{address:X2}");
+                _tileMap1[address - 0x9C00] = data;
             }
             else
             {
                 switch (address)
                 {
+                    case VideoRegisters.LcdControl:
+                        LcdControl = data;
+
+                        _logger.Log($"Write LCD Control: 0x{data:X2}");
+
+                        //interrupts?
+
+                        break;
                     case VideoRegisters.LcdStatus:
                         LcdStatus = data;
 
@@ -145,6 +206,7 @@ namespace BremuGb.Video
                         break;
 
                     case VideoRegisters.LineY:
+                        //read only
                         break;
 
                     case VideoRegisters.LineYCompare:
@@ -168,6 +230,15 @@ namespace BremuGb.Video
             }
         }
 
+        public void VideoInterruptOccured(int interruptType)
+        {
+            //request vblank interrupt
+            var currentIf = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
+            _mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(currentIf | 0x01));
+
+            //todo: request interrupt, but not if IF is executed
+        }        
+
         private int CheckLyCoincidence()
         {
             return _ppuContext.GetLineNumber() == _lycRegister ? 1 : 0;
@@ -175,6 +246,9 @@ namespace BremuGb.Video
 
         public bool AdvanceMachineCycle()
         {
+            if (_lcdEnable == 0)
+                return false;
+
             _ppuContext.AdvanceMachineCycle();
 
             if (ShouldStatIrqBeRaised())
@@ -221,26 +295,38 @@ namespace BremuGb.Video
 
         internal int GetBackgroundPixel(byte x, byte y)
         {
+            //todo: do this for 4 pixel at a time?
+
             int tileX = x / 8;
             int tileY = y / 8;
-
             int tileOffsetX = x % 8;
             int tileOffsetY = y % 8;
+            
+            //get tile index from active tilemap
+            byte tileIndex;
+            if(_bgTileMap == 0)            
+                tileIndex = _tileMap0[tileX + tileY*32];
+            else
+                tileIndex = _tileMap1[tileX + tileY * 32];
 
-            //todo: select active tilemap
-            var tileIndex = (sbyte)_tileMap0[tileX + tileY*32];
+            //get tile data based on selected addressing mode
+            byte tileData0, tileData1;
+            if (_bgWindowTileData == 0)
+            {
+                tileData0 = _tileData[0x1000 + (((sbyte)tileIndex) << 4) + tileOffsetY * 2];
+                tileData1 = _tileData[0x1000 + (((sbyte)tileIndex) << 4) + tileOffsetY * 2 + 1];
+            }
+            else
+            {
+                tileData0 = _tileData[(tileIndex << 4) + tileOffsetY * 2];
+                tileData1 = _tileData[(tileIndex << 4) + tileOffsetY * 2 + 1];
+            }
 
-            //get tile data
-            var tileData0 = _tileData[0x1000 + (tileIndex << 4) + tileOffsetY * 2];
-            var tileData1 = _tileData[0x1000 + (tileIndex << 4) + tileOffsetY * 2 + 1];
-
+            //extract selected pixel
             var msbSet = (tileData0 & (0x80 >> tileOffsetX)) > 0;
             var lsbSet = (tileData1 & (0x80 >> tileOffsetX)) > 0;
 
             return (msbSet ? 0x2 : 0) | (lsbSet ? 0x1 : 0);
-
-            //todo: check tile addressing mode
-
         }
 
         internal void WritePixel(int shade, int x, int y)
@@ -248,20 +334,6 @@ namespace BremuGb.Video
             //todo: handle palette?  
 
             _screenBitmap[y * 160 + x] = (byte)shade;
-
-            //if (shade != 0)
-                //Console.WriteLine("pixel " + x + " " + y + " in shade " + shade);
-        }
-
-        internal void RaiseNextFrameIsReadyEvent()
-        {
-            NextFrameIsReadyEvent?.Invoke(_screenBitmap);
-
-            _frameIsReady = true;
-        }
-
-        public delegate void NextFrameIsReady(byte[] frameBitmap);
-
-        public event NextFrameIsReady NextFrameIsReadyEvent;
+        }        
     }
 }

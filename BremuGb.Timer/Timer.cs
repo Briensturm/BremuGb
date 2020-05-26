@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using BremuGb.Memory;
 using BremuGb.Common.Constants;
 
-namespace BremuGb.Timer
+namespace BremuGb
 {
     public class Timer : IMemoryAccessDelegate
     {
@@ -12,43 +13,36 @@ namespace BremuGb.Timer
         private byte _tima;
         private byte _tac;
 
-        IRandomAccessMemory _mainMemory;
+        private readonly IRandomAccessMemory _mainMemory;
 
         private bool _loadTimaFromTmaCycle;
         private bool _waitCycle;
 
-        private bool TimerEnabled
-        {
-            get
-            {
-                return (_tac & 0x04) == 0x04;
-            }
-        }
+        private bool TimerEnabled => (_tac & 0x04) == 0x04;
 
         public Timer(IRandomAccessMemory mainMemory)
         {
             _mainMemory = mainMemory;
         }
 
+        public IEnumerable<ushort> GetDelegatedAddresses()
+        {
+            return new ushort[] { TimerRegisters.Divider,
+                                  TimerRegisters.TimerControl,
+                                  TimerRegisters.TimerLoad,
+                                  TimerRegisters.Timer} as IEnumerable<ushort>;
+        }
+
         public byte DelegateMemoryRead(ushort address)
         {
-            switch(address)
+            return address switch
             {
-                case TimerRegisters.Divider:
-                    return (byte)(_div >> 8);
-
-                case TimerRegisters.Timer:
-                    return _tima;
-
-                case TimerRegisters.TimerLoad:
-                    return _tma;
-
-                case TimerRegisters.TimerControl:
-                    return _tac;
-
-                default:
-                    throw new InvalidOperationException($"0x{address:X2} is not a valid timer address");
-            }
+                TimerRegisters.Divider => (byte)(_div >> 8),
+                TimerRegisters.Timer => _tima,
+                TimerRegisters.TimerLoad => _tma,
+                TimerRegisters.TimerControl => _tac,
+                _ => throw new InvalidOperationException($"0x{address:X2} is not a valid timer address"),
+            };
         }
 
         public void DelegateMemoryWrite(ushort address, byte data)
@@ -56,7 +50,6 @@ namespace BremuGb.Timer
             switch (address)
             {
                 case TimerRegisters.Divider:
-                    Console.WriteLine($"Write timer divider: 0x{data:X2}");
                     var oldDiv = _div;
                     _div = 0;
 
@@ -65,7 +58,6 @@ namespace BremuGb.Timer
                     break;
 
                 case TimerRegisters.Timer:
-                    Console.WriteLine($"Write timer register: 0x{data:X2}");
                     if (_loadTimaFromTmaCycle)
                         return;
 
@@ -74,14 +66,10 @@ namespace BremuGb.Timer
                     break;
 
                 case TimerRegisters.TimerLoad:
-                    Console.WriteLine($"Write tma: 0x{data:X2}");
-
                     _tma = data;
                     break;
 
                 case TimerRegisters.TimerControl:
-                    Console.WriteLine($"Write timer control: 0x{data:X2}");
-
                     var oldMuxOut = TimerEnabled && ((_div >> GetControlBit()) & 0x01) == 0x01;
                     _tac = data;
 
@@ -147,28 +135,16 @@ namespace BremuGb.Timer
 
         private int GetControlBit()
         {
-            var freqSelect = _tac & 0x06;
-            int bit;
-
-            switch (freqSelect)
+            var freqSelect = _tac & 0x03;
+            var bit = freqSelect switch
             {
-                case 0x00:
-                    bit = 9;
-                    break;
-                case 0x02:
-                    bit = 3;
-                    break;
-                case 0x04:
-                    bit = 5;
-                    break;
-                case 0x06:
-                    bit = 7;
-                    break;
-                default:
-                    throw new InvalidOperationException($"Invalid timer control register state 0x{_tac:X2}");
-            }
-
+                0 => 9,
+                1 => 3,
+                2 => 5,
+                3 => 7,
+                _ => throw new InvalidOperationException($"Invalid timer control register state 0x{_tac:X2}"),
+            };
             return bit;
-        }
+        }        
     }
 }

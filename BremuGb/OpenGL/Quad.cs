@@ -4,11 +4,6 @@ namespace BremuGb.UI
 {
     internal class Quad
     {
-        /*private readonly float[] _vertices = { 1.0f,  1.0f, 0.0f,   1.0f, 1.0f,
-                                               1.0f, -1.0f, 0.0f,   1.0f, 0.0f,
-                                              -1.0f, -1.0f, 0.0f,   0.0f, 0.0f,
-                                              -1.0f,  1.0f, 0.0f,   0.0f, 1.0f };*/
-
         private readonly float[] _vertices = { 1.0f,  1.0f, 0.0f,   1.0f, 0.0f,
                                                1.0f, -1.0f, 0.0f,   1.0f, 1.0f,
                                               -1.0f, -1.0f, 0.0f,   0.0f, 1.0f,

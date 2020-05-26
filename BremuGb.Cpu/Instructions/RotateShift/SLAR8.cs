@@ -17,7 +17,7 @@ namespace BremuGb.Cpu.Instructions
             cpuState.Registers.SubtractionFlag = false;
 
             var hiBit = cpuState.Registers[registerIndex] & 0x80;
-            cpuState.Registers.CarryFlag = hiBit == 0x08;
+            cpuState.Registers.CarryFlag = hiBit == 0x80;
             
             cpuState.Registers[registerIndex] = (ushort)(cpuState.Registers[registerIndex] << 1);
 

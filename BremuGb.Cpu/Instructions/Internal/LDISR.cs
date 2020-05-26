@@ -6,7 +6,7 @@ namespace BremuGb.Cpu.Instructions
 {
     public class LDISR : InstructionBase
     {
-        private byte _readyInterrupts;
+        private readonly byte _readyInterrupts;
         protected override int InstructionLength => 5;
 
         public LDISR(byte readyInterrupts)

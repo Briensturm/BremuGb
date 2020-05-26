@@ -20,9 +20,8 @@ namespace BremuGb.Cpu.Instructions
                     byte lowNibble = (byte)(_currentData & 0x0F);
                     byte highNibble = (byte)(_currentData & 0xF0);
 
-                    _writeData = (byte)((lowNibble << 4) | (highNibble >> 4));
-                    break;
-                case 1:
+                    _writeData = (byte)((lowNibble << 4) | (highNibble >> 4));                    
+
                     mainMemory.WriteByte(cpuState.Registers.HL, _writeData);
 
                     cpuState.Registers.ZeroFlag = _writeData == 0;

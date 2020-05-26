@@ -18,7 +18,7 @@
                     _context.RaiseVideoInterruptOccuredEvent(0);
 
                     //screen can be drawn now
-                    _context.PPU.RaiseNextFrameIsReadyEvent();
+                    _context.PPU._frameIsReady = true;
                 }
                 else
                     _context.TransitionTo(new Mode2());                    

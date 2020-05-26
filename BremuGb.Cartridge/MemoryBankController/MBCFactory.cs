@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BremuGb.Cartridge.MemoryBankController
 {
@@ -15,8 +13,11 @@ namespace BremuGb.Cartridge.MemoryBankController
             {
                 case 0x00:
                     return new MBC0(romData);
+                case 0x01:
+                case 0x02:
+                    return new MBC1(romData);
                 default:
-                    throw new InvalidOperationException($"MBC type 0x{mbcType:X2} is not supported");
+                    throw new NotSupportedException($"MBC type 0x{mbcType:X2} is not supported");
             }
         }
     }

@@ -4,7 +4,8 @@ namespace BremuGb.Cartridge
 {
     public class FileRomLoader : IRomLoader
     {
-        private string _filePath;
+        private readonly string _filePath;
+
         public FileRomLoader(string filePath)
         {
             _filePath = filePath;

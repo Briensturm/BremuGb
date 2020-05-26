@@ -16,7 +16,7 @@ namespace BremuGb.Cpu.Instructions
 
             cpuState.Registers.SubtractionFlag = true;
             cpuState.Registers.ZeroFlag = cpuState.Registers.A - (byte)cpuState.Registers[registerIndex] == 0;
-            cpuState.Registers.HalfCarryFlag = (byte)cpuState.Registers[registerIndex] > (cpuState.Registers.A & 0xF);
+            cpuState.Registers.HalfCarryFlag = ((cpuState.Registers.A & 0xF) - (cpuState.Registers[registerIndex] & 0xF)) < 0;
             cpuState.Registers.CarryFlag = (byte)cpuState.Registers[registerIndex] > cpuState.Registers.A;
 
             base.ExecuteCycle(cpuState, mainMemory);

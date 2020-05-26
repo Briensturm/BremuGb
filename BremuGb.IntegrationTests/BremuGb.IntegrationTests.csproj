@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="nunit" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-rc0001" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Roms\Blargg\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BremuGb.GameBoy\BremuGb.GameBoy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Roms\Blargg\cpu_instrs.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Roms\Blargg\halt_bug.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Roms\Blargg\instr_timing.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Roms\Blargg\mem_timing.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

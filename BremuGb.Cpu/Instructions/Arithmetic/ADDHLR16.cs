@@ -44,7 +44,7 @@ namespace BremuGb.Cpu.Instructions
 
                     cpuState.Registers.SubtractionFlag = false;                    
                     cpuState.Registers.CarryFlag = _addData > (0xFFFF - _oldValue);
-                    cpuState.Registers.HalfCarryFlag = _addData > (0x0FFF - (_oldValue & 0x0FFF));
+                    cpuState.Registers.HalfCarryFlag = (((_addData & 0xFFF) + (_oldValue & 0xFFF)) & 0x1000) == 0x1000;
                     break;
             }
 

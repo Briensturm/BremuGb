@@ -9,10 +9,10 @@ namespace BremuGb.Memory
         IRandomAccessMemory _mainMemory;
         DmaController _dmaController;
 
-        public MainMemoryDmaProxy(IRandomAccessMemory mainMemory)
+        public MainMemoryDmaProxy(IRandomAccessMemory mainMemory, DmaController dmaController)
         {
             _mainMemory = mainMemory;
-            _dmaController = new DmaController(mainMemory);
+            _dmaController = dmaController;
         }
 
         public byte ReadByte(ushort address)
@@ -37,14 +37,9 @@ namespace BremuGb.Memory
             _mainMemory.WriteByte(address, data);
         }        
 
-        public void RegisterMemoryAccessDelegateWriteRange(ushort addressLo, ushort addressHi, IMemoryAccessDelegate memDelegate)
+        public void RegisterMemoryAccessDelegate(IMemoryAccessDelegate memoryDelegate)
         {
-            _mainMemory.RegisterMemoryAccessDelegateWriteRange(addressLo, addressHi, memDelegate);
-        }
-
-        public void RegisterMemoryAccessDelegateReadRange(ushort addressLo, ushort addressHi, IMemoryAccessDelegate memDelegate)
-        {
-            _mainMemory.RegisterMemoryAccessDelegateReadRange(addressLo, addressHi, memDelegate);
+            _mainMemory.RegisterMemoryAccessDelegate(memoryDelegate);
         }
     }
 }

@@ -19,8 +19,7 @@ namespace BremuGb.Cpu.Instructions
                 case 2:
                     _loBit = _currentData & 0x01;           
                     _writeData = (byte)(_currentData >> 1);
-                    break;
-                case 1:
+
                     mainMemory.WriteByte(cpuState.Registers.HL, _writeData);
 
                     cpuState.Registers.ZeroFlag = _writeData == 0;

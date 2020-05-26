@@ -17,12 +17,11 @@ namespace BremuGb.Cpu.Instructions
             {
                 case 3:
                     _currentData = mainMemory.ReadByte(cpuState.Registers.HL);
+
+                    var bitIndex = (_opcode & 0x38) >> 3;
+                    _writeData = (byte)(_currentData & ~(0x01 << bitIndex));                    
                     break;
                 case 2:
-                    var bitIndex = (_opcode & 0x38) >> 3;
-                    _writeData = (byte)(_currentData & ~(0x01 << bitIndex));
-                    break;
-                case 1:
                     mainMemory.WriteByte(cpuState.Registers.HL, _writeData);
                     break;
             }

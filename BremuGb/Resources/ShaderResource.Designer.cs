@@ -80,6 +80,16 @@ namespace BremuGb.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Icon {
+            get {
+                object obj = ResourceManager.GetObject("Icon", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to #version 330 core
         ///
         ///layout(location = 0) in vec3 aPosition;

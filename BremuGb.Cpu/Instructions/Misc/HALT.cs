@@ -10,7 +10,7 @@ namespace BremuGb.Cpu.Instructions
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
             var interruptEnable = mainMemory.ReadByte(MiscRegisters.InterruptEnable);
-            var interruptFlags = mainMemory.ReadByte(MiscRegisters.InterruptEnable);
+            var interruptFlags = mainMemory.ReadByte(MiscRegisters.InterruptFlags);
 
             if (!cpuState.InterruptMasterEnable && (interruptEnable & interruptFlags & 0x1F) != 0)
                 cpuState.HaltBug = true;    

@@ -23,14 +23,13 @@ namespace BremuGb.Cpu.Instructions
 
                     _writeData = (byte)(_currentData >> 1);
                     _writeData |= (byte)_hiBit;
-                    break;
-                case 1:
+
                     mainMemory.WriteByte(cpuState.Registers.HL, _writeData);
 
                     cpuState.Registers.CarryFlag = _loBit == 0x01;
                     cpuState.Registers.ZeroFlag = _writeData == 0;
                     cpuState.Registers.HalfCarryFlag = false;
-                    cpuState.Registers.SubtractionFlag = false;                    
+                    cpuState.Registers.SubtractionFlag = false;
                     break;
             }
 

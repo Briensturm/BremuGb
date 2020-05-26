@@ -359,8 +359,7 @@ namespace BremuGb.Cpu.Tests
             byte a = 0xF1;
             byte data = 0x0F;
 
-            var expectedState = new CpuState();
-            expectedState.Registers.HalfCarryFlag = true;
+            var expectedState = new CpuState();            
             expectedState.Registers.CarryFlag = true;
 
             var actualState = new CpuState();
@@ -369,8 +368,8 @@ namespace BremuGb.Cpu.Tests
             actualState.Registers.A = a;
 
             //case A + A
-            if(opcode == 0x87)
-                expectedState.Registers.A = (byte)(a + a);                
+            if (opcode == 0x87)
+                expectedState.Registers.A = (byte)(a + a);
             else
             {
                 actualState.Registers[opcode & 0x07] = data;
@@ -378,6 +377,7 @@ namespace BremuGb.Cpu.Tests
                 expectedState.Registers[opcode & 0x07] = data;
                 expectedState.Registers.A = (byte)(a + data);
                 expectedState.Registers.ZeroFlag = true;
+                expectedState.Registers.HalfCarryFlag = true;
             }
 
             var memoryMock = new Mock<IRandomAccessMemory>();
@@ -410,8 +410,7 @@ namespace BremuGb.Cpu.Tests
             actualState.Registers.CarryFlag = true;
             actualState.Registers.ZeroFlag = true;
 
-            var expectedState = new CpuState();
-            expectedState.Registers.HalfCarryFlag = true;
+            var expectedState = new CpuState();            
             
             expectedState.Registers.SubtractionFlag = true;
 
@@ -425,6 +424,7 @@ namespace BremuGb.Cpu.Tests
             {
                 actualState.Registers[opcode & 0x07] = data;
                 expectedState.Registers[opcode & 0x07] = data;
+                expectedState.Registers.HalfCarryFlag = true;
 
                 expectedState.Registers.A = (byte)(a - data);
             }
@@ -460,19 +460,17 @@ namespace BremuGb.Cpu.Tests
             actualState.Registers.ZeroFlag = true;
 
             var expectedState = new CpuState();
-            expectedState.Registers.A = a;
-            expectedState.Registers.HalfCarryFlag = true;
+            expectedState.Registers.A = a;            
             expectedState.Registers.SubtractionFlag = true;
 
             //case A - A
             if (opcode == 0xBF)
-            {
                 expectedState.Registers.ZeroFlag = true;
-            }
             else
             {
                 actualState.Registers[opcode & 0x07] = data;
                 expectedState.Registers[opcode & 0x07] = data;
+                expectedState.Registers.HalfCarryFlag = true;
             }
 
             var memoryMock = new Mock<IRandomAccessMemory>();
@@ -615,8 +613,7 @@ namespace BremuGb.Cpu.Tests
             actualState.Registers.A = a;
             actualState.Registers.ZeroFlag = true;
 
-            var expectedState = new CpuState();
-            expectedState.Registers.HalfCarryFlag = true;
+            var expectedState = new CpuState();            
             expectedState.Registers.CarryFlag = true;
             expectedState.Registers.HL = hl;
             expectedState.Registers.A = (byte)(a - data);            
@@ -649,7 +646,6 @@ namespace BremuGb.Cpu.Tests
             actualState.Registers.ZeroFlag = true;
 
             var expectedState = new CpuState();
-            expectedState.Registers.HalfCarryFlag = true;
             expectedState.Registers.CarryFlag = true;
             expectedState.ProgramCounter = (ushort)(pc + 1);
             expectedState.Registers.A = (byte)(a - data);
@@ -682,7 +678,6 @@ namespace BremuGb.Cpu.Tests
             actualState.Registers.ZeroFlag = true;
 
             var expectedState = new CpuState();
-            expectedState.Registers.HalfCarryFlag = true;
             expectedState.Registers.CarryFlag = true;
             expectedState.Registers.HL = hl;
             expectedState.Registers.A = a;
@@ -715,7 +710,6 @@ namespace BremuGb.Cpu.Tests
             actualState.Registers.ZeroFlag = true;
 
             var expectedState = new CpuState();
-            expectedState.Registers.HalfCarryFlag = true;
             expectedState.Registers.CarryFlag = true;
             expectedState.ProgramCounter = (ushort)(pc + 1);
             expectedState.Registers.A = a;
@@ -878,8 +872,7 @@ namespace BremuGb.Cpu.Tests
             byte a = 0xF1;
             byte data = 0x0F;
 
-            var expectedState = new CpuState();
-            expectedState.Registers.HalfCarryFlag = true;
+            var expectedState = new CpuState();            
             expectedState.Registers.CarryFlag = true;
 
             var actualState = new CpuState();
@@ -898,6 +891,7 @@ namespace BremuGb.Cpu.Tests
                 expectedState.Registers[opcode & 0x07] = data;
                 expectedState.Registers.A = (byte)(a + data + carryFlag);
                 expectedState.Registers.ZeroFlag = ((byte)(a + data) + (byte)carryFlag) == 0;
+                expectedState.Registers.HalfCarryFlag = true;
             }
 
             var memoryMock = new Mock<IRandomAccessMemory>();

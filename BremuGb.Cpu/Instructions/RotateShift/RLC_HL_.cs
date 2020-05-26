@@ -19,8 +19,7 @@ namespace BremuGb.Cpu.Instructions
                 case 2:
                     _bit = _currentData >> 7;
                     _writeData = (byte)((_currentData << 1) | _bit);
-                    break;
-                case 1:
+
                     mainMemory.WriteByte(cpuState.Registers.HL, _writeData);
 
                     cpuState.Registers.CarryFlag = _bit == 1;

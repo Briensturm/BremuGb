@@ -3,6 +3,6 @@
     public interface ICpuCore
     {
         public void Reset();
-        public void ExecuteCpuCycle();
+        public void AdvanceMachineCycle();
     }
 }

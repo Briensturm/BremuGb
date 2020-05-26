@@ -22,20 +22,15 @@ namespace BremuGb.Cpu.Instructions
                     cpuState.StackPointer = (ushort)(cpuState.StackPointer + _signedValue);
                     break;
                 case 1:
-                    if (_signedValue > 0)
+                    if (_signedValue >= 0)
                     {
-                        cpuState.Registers.CarryFlag = (0xFFFF - _oldValue) < _signedValue;
-                        cpuState.Registers.HalfCarryFlag = (0xFF - (_oldValue & 0x00FF)) < _signedValue;
-                    }
-                    else if (_signedValue < 0)
-                    {
-                        cpuState.Registers.CarryFlag = _oldValue < _signedValue * (-1);
-                        cpuState.Registers.HalfCarryFlag = (_oldValue & 0x00FF) < _signedValue;
+                        cpuState.Registers.CarryFlag = ((_oldValue & 0xFF) + (_signedValue)) > 0xFF;
+                        cpuState.Registers.HalfCarryFlag = ((_oldValue & 0xF) + (_signedValue & 0xF)) > 0xF;
                     }
                     else
                     {
-                        cpuState.Registers.CarryFlag = false;
-                        cpuState.Registers.HalfCarryFlag = false;
+                        cpuState.Registers.CarryFlag = (cpuState.StackPointer & 0xFF) <= (_oldValue & 0xFF);
+                        cpuState.Registers.HalfCarryFlag = (cpuState.StackPointer & 0xF) <= (_oldValue & 0xF);
                     }
 
                     cpuState.Registers.ZeroFlag = false;

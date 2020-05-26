@@ -1,15 +1,19 @@
 ﻿using BremuGb.Memory;
 using BremuGb.Common.Constants;
 using BremuGb.Cpu.Instructions;
+using BremuGb.Common;
+using System;
 
 namespace BremuGb.Cpu
 {
     public class CpuCore : ICpuCore
     {
-        private ICpuState _cpuState;
+        private readonly ICpuState _cpuState;
 
-        private IRandomAccessMemory _mainMemory;
+        private readonly IRandomAccessMemory _mainMemory;
         private IInstruction _currentInstruction;
+
+        private readonly Logger _logger;
 
         private bool IsCpuRunning => !_cpuState.StopMode && !_cpuState.HaltMode;
 
@@ -31,26 +35,21 @@ namespace BremuGb.Cpu
             }
         }
 
-        public CpuCore(IRandomAccessMemory mainMemory, ICpuState cpuState)
+        public CpuCore(IRandomAccessMemory mainMemory, ICpuState cpuState, Logger logger)
         {
             _mainMemory = mainMemory;
             _cpuState = cpuState;
 
+            _logger = logger;
+
             Reset();
         }
 
-        public void ExecuteCpuCycle()
+        public void AdvanceMachineCycle()
         {        
             //execute one cycle of the instruction, if not in halt/stop
             if(IsCpuRunning)
-                CurrentInstruction.ExecuteCycle(_cpuState, _mainMemory);
-
-            if (_cpuState.HaltBug)
-            {
-                CurrentInstruction = GetNextInstruction();
-                _cpuState.ProgramCounter--;
-                return;
-            }
+                CurrentInstruction.ExecuteCycle(_cpuState, _mainMemory);            
 
             if (CurrentInstruction.IsFetchNecessary())
             {
@@ -58,14 +57,10 @@ namespace BremuGb.Cpu
                 var readyInterrupts = GetRequestedAndEnabledInterrupts();
                 if(readyInterrupts != 0 && !_cpuState.InstructionPrefix)
                 {
-                    //interrupts disable halt/stop (delayed by one cycle)
-                    if (_cpuState.HaltMode || _cpuState.StopMode)
-                    {
-                        CurrentInstruction = new NOP();
-                        _cpuState.HaltMode = false;
-                        _cpuState.StopMode = false;
-                    }
-                    else if (_cpuState.InterruptMasterEnable)
+                    _cpuState.HaltMode = false;
+                    _cpuState.StopMode = false;
+
+                    if (_cpuState.InterruptMasterEnable)
                         CurrentInstruction = new LDISR(readyInterrupts);
                     else
                         CurrentInstruction = GetNextInstruction();
@@ -100,14 +95,30 @@ namespace BremuGb.Cpu
             if (_cpuState.InstructionPrefix)
             {
                 _cpuState.InstructionPrefix = false;
-                return InstructionDecoder.GetPrefixedInstructionFromOpcode(nextOpcode);                    
-            }            
+                var nextPrefixedInstruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(nextOpcode);
 
-            return InstructionDecoder.GetInstructionFromOpcode(nextOpcode);     
+                _logger.Log($"{nextPrefixedInstruction.GetType().Name} 0x{nextOpcode:X2} {((CpuState)_cpuState).LogState()}");
+
+                return nextPrefixedInstruction;
+            }
+
+            var nextInstruction = InstructionDecoder.GetInstructionFromOpcode(nextOpcode);
+
+            _logger.Log($"{ ((CpuState)_cpuState).LogState()}");
+            _logger.Log($"{nextInstruction.GetType().Name} 0x{nextOpcode:X2}");
+
+            if (_cpuState.HaltBug)
+            {
+                _cpuState.ProgramCounter--;
+                _cpuState.HaltBug = false;
+            }
+
+            return nextInstruction;     
         }
 
         private byte GetRequestedAndEnabledInterrupts()
         {
+            //Console.WriteLine("read from cpu core");
             var interruptEnable = _mainMemory.ReadByte(MiscRegisters.InterruptEnable);
             var interruptFlags = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
 
