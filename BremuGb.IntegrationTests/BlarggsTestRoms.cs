@@ -11,7 +11,7 @@ namespace BremuGb.IntegrationTests
 
             for(int i = 0; i<100000; i++)
             {
-                gameBoy.AdvanceMachineCycle();
+                //gameBoy.AdvanceMachineCycle();
             }
         }
     }

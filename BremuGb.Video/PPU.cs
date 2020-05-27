@@ -45,9 +45,11 @@ namespace BremuGb.Video
                 _ppuContext._lineCounter = 0;
                 _ppuContext.TransitionTo(new Mode2());
 
-                for (int i = 0; i < _screenBitmap.Length; i++)
-                {
-                    _screenBitmap[i] = 0;
+                for (int i = 0; i < _screenBitmap.Length/3; i++)
+                {                  
+                    _screenBitmap[i*3] = 175;
+                    _screenBitmap[i * 3 +1] = 203;
+                    _screenBitmap[i * 3 +2] = 70;
                 }
 
                 _frameIsReady = true;
@@ -57,6 +59,8 @@ namespace BremuGb.Video
         private int _windowDisplayEnable;
         private int _bgWindowTileData;
         private int _bgTileMap;
+
+        private byte _backgroundPalette = 0xFC;
 
 
         //todo: bits for sprite stuff
@@ -122,7 +126,7 @@ namespace BremuGb.Video
             _tileMap1 = new byte[32 * 32];
             _tileData = new byte[6144];
 
-            _screenBitmap = new byte[Common.Constants.Video.ScreenWidth * Common.Constants.Video.ScreenHeight];
+            _screenBitmap = new byte[Common.Constants.Video.ScreenWidth * Common.Constants.Video.ScreenHeight * 3];
 
             LcdControl = 0x91;
         }
@@ -132,11 +136,12 @@ namespace BremuGb.Video
             var addressList = new List<ushort>();
 
             var videoRegisterAddresses = new ushort[] { VideoRegisters.LcdControl,
-                                                         VideoRegisters.LcdStatus,
-                                                         VideoRegisters.LineY,
-                                                         VideoRegisters.ScrollX,
-                                                         VideoRegisters.ScrollY,
-                                                         VideoRegisters.LineYCompare};
+                                                        VideoRegisters.LcdStatus,
+                                                        VideoRegisters.LineY,
+                                                        VideoRegisters.ScrollX,
+                                                        VideoRegisters.ScrollY,
+                                                        VideoRegisters.LineYCompare,
+                                                        VideoRegisters.BackgroundPalette};
 
             var vramAddresses = new ushort[0x9C00 - 0x8000 + 1];
             for (int i = 0; i < vramAddresses.Length; i++)
@@ -165,6 +170,7 @@ namespace BremuGb.Video
                 VideoRegisters.LineYCompare => _lycRegister,
                 VideoRegisters.ScrollX => ScrollX,
                 VideoRegisters.ScrollY => ScrollY,
+                VideoRegisters.BackgroundPalette => _backgroundPalette,
                 _ => throw new InvalidOperationException($"0x{address:X2} is not a valid ppu address"),
             };
         }
@@ -222,6 +228,10 @@ namespace BremuGb.Video
 
                     case VideoRegisters.ScrollY:
                         ScrollY = data;
+                        break;
+
+                    case VideoRegisters.BackgroundPalette:
+                        _backgroundPalette = data;
                         break;
 
                     default:
@@ -323,17 +333,47 @@ namespace BremuGb.Video
             }
 
             //extract selected pixel
-            var msbSet = (tileData0 & (0x80 >> tileOffsetX)) > 0;
-            var lsbSet = (tileData1 & (0x80 >> tileOffsetX)) > 0;
+            var lsbSet = (tileData0 & (0x80 >> tileOffsetX)) > 0;
+            var msbSet = (tileData1 & (0x80 >> tileOffsetX)) > 0;
 
             return (msbSet ? 0x2 : 0) | (lsbSet ? 0x1 : 0);
         }
 
         internal void WritePixel(int shade, int x, int y)
         {
-            //todo: handle palette?  
+            var color = (_backgroundPalette >> shade * 2) & 0b11;
+            byte r, g, b;
 
-            _screenBitmap[y * 160 + x] = (byte)shade;
+            if (color == 3)
+            {
+                r = 8;
+                g = 41;
+                b = 85;
+            }
+            else if (color == 2)
+            {
+                r = 43;
+                g = 111;
+                b = 95;
+            }
+            else if (color == 1)
+            {
+                r = 121;
+                g = 170;
+                b = 109;
+            }
+            else if (color == 0)
+            {
+                r = 175;
+                g = 203;
+                b = 70;
+            }
+            else
+                throw new InvalidOperationException("invalid shade: " + shade);
+
+            _screenBitmap[y * 160*3 + x*3] = r;
+            _screenBitmap[y * 160*3 + x*3 + 1] = g;
+            _screenBitmap[y * 160*3 + x*3 + 2] = b;
         }        
     }
 }

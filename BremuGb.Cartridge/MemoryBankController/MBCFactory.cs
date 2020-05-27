@@ -15,6 +15,7 @@ namespace BremuGb.Cartridge.MemoryBankController
                     return new MBC0(romData);
                 case 0x01:
                 case 0x02:
+                case 0x03:
                     return new MBC1(romData);
                 default:
                     throw new NotSupportedException($"MBC type 0x{mbcType:X2} is not supported");

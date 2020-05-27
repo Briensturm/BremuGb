@@ -1,6 +1,4 @@
-﻿using System;
-
-using OpenToolkit.Windowing.Desktop;
+﻿using OpenToolkit.Windowing.Desktop;
 using OpenToolkit.Windowing.Common.Input;
 using OpenToolkit.Windowing.Common;
 using OpenToolkit.Graphics.OpenGL;
@@ -25,25 +23,7 @@ namespace BremuGb.UI
 
         private void UpdateTexture(byte[] frameBitmap)
         {
-            var data = new byte[160 * 144 * 3];
-
-            for (int i = 0; i < frameBitmap.Length; i++)
-            {
-                byte color = (frameBitmap[i]) switch
-                {
-                    0 => 0xFF,
-                    1 => 0xAA,
-                    2 => 0x55,
-                    3 => 0x00,
-                    _ => throw new InvalidOperationException(),
-                };
-
-                data[i * 3] = color;
-                data[i * 3 + 1] = color;
-                data[i * 3 + 2] = color;
-            }
-
-            _texture.UpdateTextureData(data, 160, 144, PixelFormat.Rgb);
+            _texture.UpdateTextureData(frameBitmap, 160, 144, PixelFormat.Rgb);
         }
 
         protected override void OnLoad()

@@ -2,7 +2,6 @@
 using BremuGb.Common.Constants;
 using BremuGb.Cpu.Instructions;
 using BremuGb.Common;
-using System;
 
 namespace BremuGb.Cpu
 {
