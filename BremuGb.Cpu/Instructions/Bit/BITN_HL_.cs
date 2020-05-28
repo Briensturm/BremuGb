@@ -7,9 +7,6 @@ namespace BremuGb.Cpu.Instructions
         byte _currentData;
 
         protected override int InstructionLength => 2;
-        public BITN_HL_(byte opcode) : base(opcode)
-        {
-        }
 
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {          

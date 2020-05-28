@@ -16,6 +16,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new NOP();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -40,6 +41,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new DAA();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -62,6 +64,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new SCF();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -81,6 +84,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new HALT();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -100,6 +104,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new STOP();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -119,6 +124,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new PREFIX();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -141,6 +147,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new DI();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -163,6 +170,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new EI();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -185,6 +193,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new CCF();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -208,6 +217,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new CPL();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())

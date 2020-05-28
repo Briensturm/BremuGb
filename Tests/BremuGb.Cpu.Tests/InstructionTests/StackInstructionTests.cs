@@ -35,7 +35,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new PUSH(opcode);
+            var instruction = new PUSH();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -102,7 +103,8 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(sp)).Returns(lsbData);
             memoryMock.Setup(m => m.ReadByte((ushort)(sp + 1))).Returns(msbData);
 
-            var instruction = new POP(opcode);
+            var instruction = new POP();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())

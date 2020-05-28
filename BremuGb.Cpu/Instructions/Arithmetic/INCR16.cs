@@ -7,15 +7,13 @@ namespace BremuGb.Cpu.Instructions
         private byte _registerBits;
         protected override int InstructionLength => 2;
 
-        public INCR16(byte opcode) : base(opcode)
-        {
-            _registerBits = (byte)((opcode >> 4) & 0x03);
-        }
-
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
             switch(_remainingCycles)
             {
+                case 2:
+                    _registerBits = (byte)((_opcode >> 4) & 0x03);
+                    break;
                 case 1:
                     switch(_registerBits)
                     {

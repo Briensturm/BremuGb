@@ -8,10 +8,6 @@ namespace BremuGb.Cpu.Instructions
 
         protected override int InstructionLength => 4;
 
-        public JPCC(byte opcode) : base(opcode)
-        {
-        }
-
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
             switch(_remainingCycles)

@@ -9,7 +9,6 @@ namespace BremuGb.Cpu.Instructions
         private sbyte _signedValue;
         protected override int InstructionLength => 4;
 
-
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
             switch (_remainingCycles)

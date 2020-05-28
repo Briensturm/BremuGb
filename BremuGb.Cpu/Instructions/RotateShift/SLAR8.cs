@@ -5,9 +5,6 @@ namespace BremuGb.Cpu.Instructions
     public class SLAR8 : InstructionBase
     {
         protected override int InstructionLength => 1;
-        public SLAR8(byte opcode) : base(opcode)
-        {
-        }
 
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {

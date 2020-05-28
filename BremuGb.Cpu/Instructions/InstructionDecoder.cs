@@ -8,22 +8,33 @@ namespace BremuGb.Cpu
     public class InstructionDecoder
     {
         private Dictionary<byte, IInstruction> _instructionCache;
+        private Dictionary<byte, IInstruction> _prefixedInstructionCache;
 
         public InstructionDecoder()
         {
             _instructionCache = new Dictionary<byte, IInstruction>();
+            _prefixedInstructionCache = new Dictionary<byte, IInstruction>();
         }
 
         public IInstruction DecodeInstruction(byte opcode, bool isPrefixed)
         {
-            if (!_instructionCache.TryGetValue(opcode, out IInstruction instruction))
-            {
-                if (isPrefixed)
-                    instruction = InstantiatePrefixedInstruction(opcode);
-                else
-                    instruction = InstantiateInstruction(opcode);
+            IInstruction instruction;
 
-                _instructionCache.Add(opcode, instruction);
+            if(!isPrefixed)
+            {
+                if (!_instructionCache.TryGetValue(opcode, out instruction))
+                {
+                    instruction = InstantiateInstruction(opcode);
+                    _instructionCache.Add(opcode, instruction);
+                }
+            }
+            else
+            {
+                if (!_prefixedInstructionCache.TryGetValue(opcode, out instruction))
+                {
+                    instruction = InstantiatePrefixedInstruction(opcode);
+                    _prefixedInstructionCache.Add(opcode, instruction);
+                }
             }
 
             instruction.Initialize(opcode);
@@ -33,79 +44,79 @@ namespace BremuGb.Cpu
         private IInstruction InstantiateInstruction(byte opcode)
         {
             if ((opcode >> 6) == 0x01 && (opcode & 0x07) != 0x06 && (opcode & 0x38) != 0x30)
-                return new LDR8R8(opcode);
+                return new LDR8R8();
 
             if ((opcode & 0xC7) == 0x06 && opcode != 0x36)
-                return new LDR8D8(opcode);
+                return new LDR8D8();
 
             if ((opcode & 0xF8) == 0x80 && opcode != 0x86)
-                return new ADDAR8(opcode);
+                return new ADDAR8();
 
             if ((opcode & 0xF8) == 0x88 && opcode != 0x8E)
-                return new ADCAR8(opcode);
+                return new ADCAR8();
 
             if ((opcode & 0xC7) == 0x04 && (opcode & 0x38) != 0x30)
-                return new INCR8(opcode);
+                return new INCR8();
 
             if ((opcode & 0xC7) == 0x05 && (opcode & 0x38) != 0x30)
-                return new DECR8(opcode);
+                return new DECR8();
 
             if ((opcode & 0xF8) == 0xA0 && opcode != 0xA6)
-                return new ANDAR8(opcode);
+                return new ANDAR8();
 
             if ((opcode & 0xF8) == 0xB0 && opcode != 0xB6)
-                return new ORAR8(opcode);
+                return new ORAR8();
 
             if ((opcode & 0xF8) == 0xA8 && opcode != 0xAE)
-                return new XORAR8(opcode);
+                return new XORAR8();
 
             if ((opcode & 0xF8) == 0x70 && opcode != 0x76)
-                return new LD_HL_R8(opcode);
+                return new LD_HL_R8();
 
             if ((opcode & 0xC7) == 0x46 && opcode != 0x76)
-                return new LDR8_HL_(opcode);
+                return new LDR8_HL_();
 
             if ((opcode & 0xF8) == 0x90 && opcode != 0x96)
-                return new SUBAR8(opcode);
+                return new SUBAR8();
 
             if ((opcode & 0xF8) == 0x98 && opcode != 0x9E)
-                return new SBCAR8(opcode);
+                return new SBCAR8();
 
             if ((opcode & 0xF8) == 0xB8 && opcode != 0xBE)
-                return new CPAR8(opcode);
+                return new CPAR8();
 
             if ((opcode & 0xCF) == 0xC5)
-                return new PUSH(opcode);
+                return new PUSH();
 
             if ((opcode & 0xCF) == 0xC1)
-                return new POP(opcode);
+                return new POP();
 
             if ((opcode & 0xCF) == 0x03)
-                return new INCR16(opcode);
+                return new INCR16();
 
             if ((opcode & 0xCF) == 0x0B)
-                return new DECR16(opcode);
+                return new DECR16();
 
             if ((opcode & 0xC7) == 0xC7)
-                return new RST(opcode);
+                return new RST();
 
             if ((opcode & 0xE7) == 0xC4)
-                return new CALLCC(opcode);
+                return new CALLCC();
 
             if ((opcode & 0xE7) == 0xC2)
-                return new JPCC(opcode);
+                return new JPCC();
 
             if ((opcode & 0xE7) == 0xC0)
-                return new RETCC(opcode);
+                return new RETCC();
 
             if ((opcode & 0xE7) == 0x20)
-                return new JRCC(opcode);
+                return new JRCC();
 
             if ((opcode & 0xCF) == 0x01)
-                return new LDR16D16(opcode);
+                return new LDR16D16();
 
             if ((opcode & 0xCF) == 0x09)
-                return new ADDHLR16(opcode);
+                return new ADDHLR16();
 
             switch (opcode)
             {
@@ -235,46 +246,46 @@ namespace BremuGb.Cpu
         private IInstruction InstantiatePrefixedInstruction(byte opcode)
         {
             if ((opcode & 0xC0) == 0x40 && (opcode & 0x07) != 0x06)
-                return new BITNR8(opcode);
+                return new BITNR8();
 
             if ((opcode & 0xC0) == 0xC0 && (opcode & 0x07) != 0x06)
-                return new SETNR8(opcode);
+                return new SETNR8();
 
             if ((opcode & 0xC0) == 0x80 && (opcode & 0x07) != 0x06)
-                return new RESNR8(opcode);
+                return new RESNR8();
 
             if ((opcode & 0xC0) == 0x80 && (opcode & 0x07) == 0x06)
-                return new RESN_HL_(opcode);
+                return new RESN_HL_();
 
             if ((opcode & 0xC0) == 0xC0 && (opcode & 0x07) == 0x06)
-                return new SETN_HL_(opcode);
+                return new SETN_HL_();
 
             if ((opcode & 0xC0) == 0x40 && (opcode & 0x07) == 0x06)
-                return new BITN_HL_(opcode);
+                return new BITN_HL_();
 
             if ((opcode & 0xF8) == 0 && opcode != 0x06)
-                return new RLCR8(opcode);
+                return new RLCR8();
 
             if ((opcode & 0xF8) == 0x10 && opcode != 0x16)
-                return new RLR8(opcode);
+                return new RLR8();
 
             if ((opcode & 0xF8) == 0x20 && opcode != 0x26)
-                return new SLAR8(opcode);
+                return new SLAR8();
 
             if ((opcode & 0xF8) == 0x30 && opcode != 0x36)
-                return new SWAPR8(opcode);
+                return new SWAPR8();
 
             if ((opcode & 0xF8) == 0x08 && opcode != 0x0E)
-                return new RRCR8(opcode);
+                return new RRCR8();
 
             if ((opcode & 0xF8) == 0x18 && opcode != 0x1E)
-                return new RRR8(opcode);
+                return new RRR8();
 
             if ((opcode & 0xF8) == 0x28 && opcode != 0x2E)
-                return new SRAR8(opcode);
+                return new SRAR8();
 
             if ((opcode & 0xF8) == 0x38 && opcode != 0x3E)
-                return new SRLR8(opcode);
+                return new SRLR8();
 
             switch(opcode)
             {

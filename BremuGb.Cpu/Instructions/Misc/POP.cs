@@ -8,16 +8,13 @@ namespace BremuGb.Cpu.Instructions
 
         protected override int InstructionLength => 3;
 
-        public POP(byte opcode) : base(opcode)
-        {
-            _registerBits = (byte)((opcode >> 4) & 0x03);
-        }
-
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         { 
             switch(_remainingCycles)
             {
                 case 3:
+                    _registerBits = (byte)((_opcode >> 4) & 0x03);
+
                     var lsbData = mainMemory.ReadByte(cpuState.StackPointer++);
                     WriteToRegister(cpuState, lsbData, true);                    
                     break;

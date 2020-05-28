@@ -7,9 +7,6 @@ namespace BremuGb.Cpu.Instructions
         byte _currentData;
         byte _writeData;
         protected override int InstructionLength => 3;
-        public SETN_HL_(byte opcode) : base(opcode)
-        {
-        }
 
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {          

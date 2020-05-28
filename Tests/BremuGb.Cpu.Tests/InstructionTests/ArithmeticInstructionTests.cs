@@ -37,7 +37,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new ANDAR8(opcode);
+            var instruction = new ANDAR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -73,6 +74,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new ANDAD8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -108,6 +110,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new ANDA_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -147,7 +150,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new ORAR8(opcode);
+            var instruction = new ORAR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -183,6 +187,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new ORAD8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -218,6 +223,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new ORA_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -266,7 +272,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new XORAR8(opcode);
+            var instruction = new XORAR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -302,6 +309,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new XORAD8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -337,6 +345,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new XORA_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -382,7 +391,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new ADDAR8(opcode);
+            var instruction = new ADDAR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -431,7 +441,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new SUBAR8(opcode);
+            var instruction = new SUBAR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -475,7 +486,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new CPAR8(opcode);
+            var instruction = new CPAR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -524,7 +536,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new SBCAR8(opcode);
+            var instruction = new SBCAR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -558,6 +571,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new ADDA_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -591,6 +605,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new ADDAD8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -623,6 +638,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new SUBA_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -655,6 +671,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new SUBAD8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -687,6 +704,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new CPA_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -719,6 +737,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new CPAD8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -753,6 +772,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new SBCA_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -787,6 +807,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new SBCAD8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -821,6 +842,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new ADCA_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -855,6 +877,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new ADCAD8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -896,7 +919,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new ADCAR8(opcode);
+            var instruction = new ADCAR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -930,6 +954,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new ADDSPS8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -964,7 +989,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new ADDHLR16(opcode);
+            var instruction = new ADDHLR16();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -994,6 +1020,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(address)).Returns(data);
 
             var instruction = new INC_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -1023,6 +1050,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(address)).Returns(data);
 
             var instruction = new DEC_HL_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -1054,7 +1082,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new DECR8(opcode);
+            var instruction = new DECR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -1088,7 +1117,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new INCR8(opcode);
+            var instruction = new INCR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -1135,7 +1165,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new DECR16(opcode);
+            var instruction = new DECR16();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -1182,7 +1213,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new INCR16(opcode);
+            var instruction = new INCR16();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())

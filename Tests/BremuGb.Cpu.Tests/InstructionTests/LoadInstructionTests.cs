@@ -73,7 +73,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new LDR8R8(opcode);
+            var instruction = new LDR8R8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -120,7 +121,8 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(lsbData);
             memoryMock.Setup(m => m.ReadByte((ushort)(pc + 1))).Returns(msbData);
 
-            var instruction = new LDR16D16(opcode);
+            var instruction = new LDR16D16();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -149,6 +151,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new LD_HL_D8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -179,6 +182,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte((ushort)(pc+1))).Returns(addressMsb);
 
             var instruction = new LD_D16_SP();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -206,6 +210,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new LDSPHL();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -239,7 +244,8 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
-            var instruction = new LDR8D8(opcode);
+            var instruction = new LDR8D8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -273,7 +279,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new LD_HL_R8(opcode);
+            var instruction = new LD_HL_R8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -307,7 +314,8 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
-            var instruction = new LDR8_HL_(opcode);
+            var instruction = new LDR8_HL_();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -334,6 +342,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new LD_BC_A();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -360,6 +369,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new LD_DE_A();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -386,6 +396,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new LD_HLP_A();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -412,6 +423,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new LD_HLM_A();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -438,6 +450,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(bc)).Returns(data);
 
             var instruction = new LDA_BC_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -464,6 +477,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(de)).Returns(data);
 
             var instruction = new LDA_DE_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -490,6 +504,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new LDA_HLP_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -516,6 +531,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
             var instruction = new LDA_HLM_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -544,6 +560,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(addressLsb);
 
             var instruction = new LDH_D8_A();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -572,6 +589,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte((ushort)((0xFF << 8) | addressLsb))).Returns(data);
 
             var instruction = new LDHA_D8_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -598,6 +616,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
 
             var instruction = new LDH_C_A();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -624,6 +643,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte((ushort)((0xFF << 8) | addressLsb))).Returns(data);
 
             var instruction = new LDHA_C_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -654,6 +674,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte((ushort)(pc + 1))).Returns(addressMsb);
 
             var instruction = new LD_D16_A();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -684,6 +705,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte((ushort)((addressMsb << 8) | addressLsb))).Returns(data);
 
             var instruction = new LDA_D16_();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -717,6 +739,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(data);
 
             var instruction = new LDHLSPS8();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())

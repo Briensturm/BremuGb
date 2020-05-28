@@ -30,6 +30,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte((ushort)(pc + 1))).Returns(msbData);
 
             var instruction = new CALL();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -93,7 +94,8 @@ namespace BremuGb.Cpu.Tests
                 expectedState.ProgramCounter = (ushort)(pc + 2);
             }
 
-            var instruction = new CALLCC(opcode);
+            var instruction = new CALLCC();
+            instruction.Initialize(opcode);
 
             //act
             var cycleCount = 0;
@@ -138,6 +140,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte((ushort)(sp+1))).Returns(msbData);
 
             var instruction = new RET();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -167,6 +170,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte((ushort)(sp + 1))).Returns(msbData);
 
             var instruction = new RETI();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -231,7 +235,8 @@ namespace BremuGb.Cpu.Tests
             else
                 expectedState.StackPointer = sp;
 
-            var instruction = new RETCC(opcode);
+            var instruction = new RETCC();
+            instruction.Initialize(opcode);
 
             //act
             var cycleCount = 0;
@@ -276,7 +281,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new RST(opcode);
+            var instruction = new RST();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -332,7 +338,8 @@ namespace BremuGb.Cpu.Tests
             else
                 expectedState.ProgramCounter = (ushort)(pc + 2);
 
-            var instruction = new JPCC(opcode);
+            var instruction = new JPCC();
+            instruction.Initialize(opcode);
 
             //act
             var cycleCount = 0;
@@ -370,6 +377,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte((ushort)(pc + 1))).Returns(msbData);
 
             var instruction = new JPD16();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -394,6 +402,7 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();            
 
             var instruction = new JPHL();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -419,6 +428,7 @@ namespace BremuGb.Cpu.Tests
             memoryMock.Setup(m => m.ReadByte(pc)).Returns(offset);
 
             var instruction = new JR();
+            instruction.Initialize();
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -471,7 +481,8 @@ namespace BremuGb.Cpu.Tests
             else
                 expectedState.ProgramCounter = (ushort)(pc + 1);
 
-            var instruction = new JRCC(opcode);
+            var instruction = new JRCC();
+            instruction.Initialize(opcode);
 
             //act
             var cycleCount = 0;

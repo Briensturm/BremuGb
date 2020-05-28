@@ -5,9 +5,6 @@ namespace BremuGb.Cpu.Instructions
     public class LD_HL_R8 : InstructionBase
     {
         protected override int InstructionLength => 2;
-        public LD_HL_R8(byte opcode) : base(opcode)
-        {
-        }
 
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {

@@ -6,10 +6,6 @@ namespace BremuGb.Cpu.Instructions
     {
         protected override int InstructionLength => 1;
 
-        public ADCAR8(byte opcode) : base(opcode)
-        {
-        }
-
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
             var registerIndex = _opcode & 0x07;

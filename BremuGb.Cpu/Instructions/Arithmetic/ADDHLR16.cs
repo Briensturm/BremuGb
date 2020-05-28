@@ -9,10 +9,6 @@ namespace BremuGb.Cpu.Instructions
         private ushort _addData;
         protected override int InstructionLength => 2;
 
-        public ADDHLR16(byte opcode) : base(opcode)
-        {
-        }
-
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
             switch (_remainingCycles)

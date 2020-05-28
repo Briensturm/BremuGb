@@ -87,7 +87,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new BITNR8(opcode);
+            var instruction = new BITNR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -121,7 +122,8 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
-            var instruction = new BITN_HL_(opcode);
+            var instruction = new BITN_HL_();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -200,7 +202,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new SETNR8(opcode);
+            var instruction = new SETNR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -287,7 +290,8 @@ namespace BremuGb.Cpu.Tests
 
             var memoryMock = new Mock<IRandomAccessMemory>();
 
-            var instruction = new RESNR8(opcode);
+            var instruction = new RESNR8();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -322,7 +326,8 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
-            var instruction = new RESN_HL_(opcode);
+            var instruction = new RESN_HL_();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())
@@ -357,7 +362,8 @@ namespace BremuGb.Cpu.Tests
             var memoryMock = new Mock<IRandomAccessMemory>();
             memoryMock.Setup(m => m.ReadByte(hl)).Returns(data);
 
-            var instruction = new SETN_HL_(opcode);
+            var instruction = new SETN_HL_();
+            instruction.Initialize(opcode);
 
             //act
             while (!instruction.IsFetchNecessary())

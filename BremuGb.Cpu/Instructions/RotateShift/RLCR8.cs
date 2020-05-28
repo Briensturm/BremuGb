@@ -5,9 +5,6 @@ namespace BremuGb.Cpu.Instructions
     public class RLCR8 : InstructionBase
     {
         protected override int InstructionLength => 1;
-        public RLCR8(byte opcode) : base(opcode)
-        {
-        }
 
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {

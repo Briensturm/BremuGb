@@ -7,16 +7,14 @@ namespace BremuGb.Cpu.Instructions
         private byte _loadData;
         private int _registerIndex;
         protected override int InstructionLength => 2;
-        public LDR8D8(byte opcode) : base(opcode)
-        {
-            _registerIndex = opcode >> 3;
-        }
 
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
             switch (_remainingCycles)
             {
                 case 2:
+                    _registerIndex = _opcode >> 3;
+
                     _loadData = mainMemory.ReadByte(cpuState.ProgramCounter++);
                     break;
                 case 1:

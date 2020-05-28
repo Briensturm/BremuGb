@@ -1,6 +1,5 @@
 ﻿using BremuGb.Memory;
 using BremuGb.Common.Constants;
-using System;
 
 namespace BremuGb.Cpu.Instructions
 {

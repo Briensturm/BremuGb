@@ -10,12 +10,6 @@ namespace BremuGb.Cpu.Instructions
         protected byte _opcode;
         protected abstract int InstructionLength { get; }
 
-        public InstructionBase(byte opcode = 0x00)
-        {
-            _remainingCycles = InstructionLength;
-            _opcode = opcode;
-        }
-
         public virtual void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
             if (cpuState == null)
