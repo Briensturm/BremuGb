@@ -6,7 +6,6 @@ using BremuGb.Memory;
 using BremuGb.Common;
 using BremuGb.Common.Constants;
 
-
 namespace BremuGb.Video
 {
     public class PPU : IMemoryAccessDelegate
@@ -28,6 +27,8 @@ namespace BremuGb.Video
 
         internal byte ScrollX { get; private set; }
         internal byte ScrollY { get; private set; }
+        internal byte WindowX { get; private set; }
+        internal byte WindowY { get; private set; }
 
         private readonly byte[] _tileData;
         private readonly byte[] _tileMap0;
@@ -56,9 +57,12 @@ namespace BremuGb.Video
             }
         }
         private int _windowTileMap;
-        private int _windowDisplayEnable;
+        internal int _windowDisplayEnable;
         private int _bgWindowTileData;
         private int _bgTileMap;
+        private int _spriteSize;
+        private int _spriteEnable;
+        internal int _bgEnable;
 
         private byte _backgroundPalette = 0xFC;
 
@@ -72,7 +76,10 @@ namespace BremuGb.Video
                             (_windowTileMap << 6) |
                             (_windowDisplayEnable << 5) |
                             (_bgWindowTileData << 4) |
-                            (_bgTileMap << 3));
+                            (_bgTileMap << 3) |
+                            (_spriteSize << 2) |
+                            (_spriteEnable << 1) |
+                            (_bgEnable << 0));
             }
             set
             {
@@ -81,6 +88,9 @@ namespace BremuGb.Video
                 _windowDisplayEnable = (value >> 5) & 0x01;
                 _bgWindowTileData = (value >> 4) & 0x01;
                 _bgTileMap = (value >> 3) & 0x01;
+                _spriteSize = (value >> 2) & 0x01;
+                _spriteEnable = (value >> 1) & 0x01;
+                _bgEnable = (value >> 0) & 0x01;
             }
         }
 
@@ -140,10 +150,12 @@ namespace BremuGb.Video
                                                         VideoRegisters.LineY,
                                                         VideoRegisters.ScrollX,
                                                         VideoRegisters.ScrollY,
+                                                        VideoRegisters.WindowX,
+                                                        VideoRegisters.WindowY,
                                                         VideoRegisters.LineYCompare,
                                                         VideoRegisters.BackgroundPalette};
 
-            var vramAddresses = new ushort[0x9C00 - 0x8000 + 1];
+            var vramAddresses = new ushort[0x9FFF - 0x8000 + 1];
             for (int i = 0; i < vramAddresses.Length; i++)
                 vramAddresses[i] = (ushort)(i + 0x8000);
 
@@ -170,6 +182,8 @@ namespace BremuGb.Video
                 VideoRegisters.LineYCompare => _lycRegister,
                 VideoRegisters.ScrollX => ScrollX,
                 VideoRegisters.ScrollY => ScrollY,
+                VideoRegisters.WindowX => WindowX,
+                VideoRegisters.WindowY => WindowY,
                 VideoRegisters.BackgroundPalette => _backgroundPalette,
                 _ => throw new InvalidOperationException($"0x{address:X2} is not a valid ppu address"),
             };
@@ -228,6 +242,14 @@ namespace BremuGb.Video
 
                     case VideoRegisters.ScrollY:
                         ScrollY = data;
+                        break;
+
+                    case VideoRegisters.WindowX:
+                        WindowX = data;
+                        break;
+
+                    case VideoRegisters.WindowY:
+                        WindowY = data;
                         break;
 
                     case VideoRegisters.BackgroundPalette:
@@ -303,9 +325,9 @@ namespace BremuGb.Video
             return raiseStatIrq;
         }
 
-        internal int GetBackgroundPixel(byte x, byte y)
+        internal int GetBackgroundPixel(byte x, byte y, bool window = false)
         {
-            //todo: do this for 4 pixel at a time?
+            //todo: do this for 4 pixels at a time?
 
             int tileX = x / 8;
             int tileY = y / 8;
@@ -314,8 +336,15 @@ namespace BremuGb.Video
             
             //get tile index from active tilemap
             byte tileIndex;
-            if(_bgTileMap == 0)            
-                tileIndex = _tileMap0[tileX + tileY*32];
+            int tileMapSelect;
+
+            if (window)
+                tileMapSelect = _windowTileMap;
+            else
+                tileMapSelect = _bgTileMap;
+
+            if(tileMapSelect == 0)            
+                tileIndex = _tileMap0[tileX + tileY * 32];
             else
                 tileIndex = _tileMap1[tileX + tileY * 32];
 

@@ -4,7 +4,6 @@
     {
         private int _dotCounter = 0;
 
-
         public override void AdvanceMachineCycle()
         {
             _dotCounter += 4;
@@ -16,9 +15,17 @@
                 var scrollX = _context.PPU.ScrollX;
                 var scrollY = _context.PPU.ScrollY;
 
-                for (byte i = 0; i<160; i++)
+                var windowX = _context.PPU.WindowX-6;
+                var windowY = _context.PPU.WindowY;
+
+                for (byte x = 0; x<160; x++)
                 {
-                    _context.PPU.WritePixel(_context.PPU.GetBackgroundPixel((byte)(i + scrollX), (byte)(lineNo + scrollY)), i, lineNo);
+                    if(_context.PPU._windowDisplayEnable == 1 && windowX <= x && windowY <= lineNo)
+                        _context.PPU.WritePixel(_context.PPU.GetBackgroundPixel((byte)(x + windowX), (byte)(lineNo + windowY), true), x, lineNo);
+                    else if(_context.PPU._bgEnable == 1)
+                        _context.PPU.WritePixel(_context.PPU.GetBackgroundPixel((byte)(x + scrollX), (byte)(lineNo + scrollY)), x, lineNo);
+         
+                    //todo: what happens for a pixel if window and bg disabled?
                 }
 
                 _context.TransitionTo(new Mode0());
