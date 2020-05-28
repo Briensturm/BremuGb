@@ -12,7 +12,7 @@ namespace BremuGb
     {
         private readonly ICpuCore _cpuCore;
 
-        private readonly PPU _ppu;
+        private readonly PixelProcessingUnit _ppu;
         private readonly Timer _timer;        
         private readonly DmaController _dmaController;
         private readonly Joypad _joypad;
@@ -29,7 +29,7 @@ namespace BremuGb
             IRandomAccessMemory mainMemoryProxy = new MainMemoryDmaProxy(mainMemory, _dmaController);
             
             _timer = new Timer(mainMemory);
-            _ppu = new PPU(mainMemory, _logger);
+            _ppu = new PixelProcessingUnit(mainMemory, _logger);
             _joypad = new Joypad();
 
             _cpuCore = new CpuCore(mainMemoryProxy, new CpuState(), _logger);
@@ -57,7 +57,7 @@ namespace BremuGb
 
         public byte[] GetScreen()
         {
-            return _ppu._screenBitmap;
+            return _ppu.GetScreen();
         }
 
         public void SaveLog(string path)
