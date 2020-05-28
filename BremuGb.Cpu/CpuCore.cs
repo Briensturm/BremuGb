@@ -12,6 +12,8 @@ namespace BremuGb.Cpu
         private readonly IRandomAccessMemory _mainMemory;
         private IInstruction _currentInstruction;
 
+        InstructionDecoder _instructionDecoder;
+
         private readonly Logger _logger;
 
         private bool IsCpuRunning => !_cpuState.StopMode && !_cpuState.HaltMode;
@@ -38,6 +40,8 @@ namespace BremuGb.Cpu
         {
             _mainMemory = mainMemory;
             _cpuState = cpuState;
+
+            _instructionDecoder = new InstructionDecoder();
 
             _logger = logger;
 
@@ -89,22 +93,13 @@ namespace BremuGb.Cpu
 
         private IInstruction GetNextInstruction()
         {
-            var nextOpcode = _mainMemory.ReadByte(_cpuState.ProgramCounter++);
+            var nextOpcode = _mainMemory.ReadByte(_cpuState.ProgramCounter++);            
 
             if (_cpuState.InstructionPrefix)
             {
                 _cpuState.InstructionPrefix = false;
-                var nextPrefixedInstruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(nextOpcode);
-
-                _logger.Log($"{nextPrefixedInstruction.GetType().Name} 0x{nextOpcode:X2} {((CpuState)_cpuState).LogState()}");
-
-                return nextPrefixedInstruction;
+                return _instructionDecoder.DecodeInstruction(nextOpcode, true);
             }
-
-            var nextInstruction = InstructionDecoder.GetInstructionFromOpcode(nextOpcode);
-
-            _logger.Log($"{ ((CpuState)_cpuState).LogState()}");
-            _logger.Log($"{nextInstruction.GetType().Name} 0x{nextOpcode:X2}");
 
             if (_cpuState.HaltBug)
             {
@@ -112,12 +107,11 @@ namespace BremuGb.Cpu
                 _cpuState.HaltBug = false;
             }
 
-            return nextInstruction;     
+            return _instructionDecoder.DecodeInstruction(nextOpcode, false);    
         }
 
         private byte GetRequestedAndEnabledInterrupts()
         {
-            //Console.WriteLine("read from cpu core");
             var interruptEnable = _mainMemory.ReadByte(MiscRegisters.InterruptEnable);
             var interruptFlags = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
 

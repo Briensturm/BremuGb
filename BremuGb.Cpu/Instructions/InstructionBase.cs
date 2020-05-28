@@ -1,7 +1,6 @@
 ﻿using System;
 
 using BremuGb.Memory;
-using BremuGb.Common;
 
 namespace BremuGb.Cpu.Instructions
 {
@@ -36,30 +35,23 @@ namespace BremuGb.Cpu.Instructions
             return _remainingCycles == 0;
         }
 
-        public void Initialize()
+        public void Initialize(byte opcode = 0x00)
         {
-            if (InstructionLength < 1)
-                throw new InvalidOperationException("Instruction cycle count must be greater than 0");
-
             _remainingCycles = InstructionLength;
+            _opcode = opcode;
         }
 
         protected bool IsConditionMet(ICpuState cpuState)
         {
             var condition = _opcode & 0x18;
-            switch (condition)
+            return condition switch
             {
-                case 0x00:
-                    return !cpuState.Registers.ZeroFlag;
-                case 0x08:
-                    return cpuState.Registers.ZeroFlag;
-                case 0x10:
-                    return !cpuState.Registers.CarryFlag;
-                case 0x18:
-                    return cpuState.Registers.CarryFlag;
-                default:
-                    throw new InvalidOperationException($"Unexpected behavior for conditional opcode 0x{_opcode:X2} with condition 0x{condition:X2}");
-            }
+                0x00 => !cpuState.Registers.ZeroFlag,
+                0x08 => cpuState.Registers.ZeroFlag,
+                0x10 => !cpuState.Registers.CarryFlag,
+                0x18 => cpuState.Registers.CarryFlag,
+                _ => throw new InvalidOperationException($"Unexpected behavior for conditional opcode 0x{_opcode:X2} with condition 0x{condition:X2}"),
+            };
         }
     }
 }

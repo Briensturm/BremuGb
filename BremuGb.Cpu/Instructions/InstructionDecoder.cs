@@ -1,11 +1,36 @@
 ﻿using System;
+using System.Collections.Generic;
+
 using BremuGb.Cpu.Instructions;
 
 namespace BremuGb.Cpu
 {
-    public static class InstructionDecoder
+    public class InstructionDecoder
     {
-        public static IInstruction GetInstructionFromOpcode(byte opcode)
+        private Dictionary<byte, IInstruction> _instructionCache;
+
+        public InstructionDecoder()
+        {
+            _instructionCache = new Dictionary<byte, IInstruction>();
+        }
+
+        public IInstruction DecodeInstruction(byte opcode, bool isPrefixed)
+        {
+            if (!_instructionCache.TryGetValue(opcode, out IInstruction instruction))
+            {
+                if (isPrefixed)
+                    instruction = InstantiatePrefixedInstruction(opcode);
+                else
+                    instruction = InstantiateInstruction(opcode);
+
+                _instructionCache.Add(opcode, instruction);
+            }
+
+            instruction.Initialize(opcode);
+            return instruction;
+        }
+
+        private IInstruction InstantiateInstruction(byte opcode)
         {
             if ((opcode >> 6) == 0x01 && (opcode & 0x07) != 0x06 && (opcode & 0x38) != 0x30)
                 return new LDR8R8(opcode);
@@ -207,7 +232,7 @@ namespace BremuGb.Cpu
             }
         }
 
-        public static IInstruction GetPrefixedInstructionFromOpcode(byte opcode)
+        private IInstruction InstantiatePrefixedInstruction(byte opcode)
         {
             if ((opcode & 0xC0) == 0x40 && (opcode & 0x07) != 0x06)
                 return new BITNR8(opcode);
@@ -272,6 +297,6 @@ namespace BremuGb.Cpu
                 default:
                     throw new InvalidOperationException($"Unknown prefixed opcode, unable to decode: 0x{opcode:X2}");
             }            
-        }
+        }        
     }
 }

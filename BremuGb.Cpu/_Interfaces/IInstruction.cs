@@ -6,5 +6,6 @@ namespace BremuGb.Cpu
     {
         public void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory);
         public bool IsFetchNecessary();
+        public void Initialize(byte opcode);
     }
 }

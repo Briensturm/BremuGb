@@ -6,12 +6,20 @@ namespace BremuGb.Cpu.Tests
 {
     public class PrefixedInstructionDecoderTests
     {
+        InstructionDecoder _instructionDecoder;
+
+        [OneTimeSetUp]
+        public void InitTestFixture()
+        {
+            _instructionDecoder = new InstructionDecoder();
+        }
+
         [Test]
         public void All_prefixed_instructions_are_implemented()
         {
             for (ushort opcode = 0x00; opcode <= 0xFF; opcode++)
             {
-                Assert.DoesNotThrow(() => InstructionDecoder.GetPrefixedInstructionFromOpcode((byte)opcode));
+                Assert.DoesNotThrow(() => _instructionDecoder.DecodeInstruction((byte)opcode, true));
             }
         }
 
@@ -73,7 +81,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x7F)]
         public void Decode_BITNR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<BITNR8>(instruction);
         }
@@ -135,7 +143,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0xFF)]
         public void Decode_SETNR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SETNR8>(instruction);
         }
@@ -197,7 +205,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0xBF)]
         public void Decode_RESNR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RESNR8>(instruction);
         }
@@ -212,7 +220,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0xBE)]
         public void Decode_RESN_HL_(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RESN_HL_>(instruction);
         }
@@ -227,7 +235,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0xFE)]
         public void Decode_SETN_HL_(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SETN_HL_>(instruction);
         }
@@ -242,7 +250,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x7E)]
         public void Decode_BITN_HL_(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<BITN_HL_>(instruction);
         }
@@ -256,7 +264,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x07)]
         public void Decode_RLCR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RLCR8>(instruction);
         }
@@ -270,7 +278,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x17)]
         public void Decode_RLR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RLR8>(instruction);
         }
@@ -284,7 +292,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x0F)]
         public void Decode_RRCR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RRCR8>(instruction);
         }
@@ -298,7 +306,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x1F)]
         public void Decode_RRR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RRR8>(instruction);
         }
@@ -312,7 +320,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x27)]
         public void Decode_SLAR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SLAR8>(instruction);
         }
@@ -326,7 +334,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x2F)]
         public void Decode_SRAR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SRAR8>(instruction);
         }
@@ -340,7 +348,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x3F)]
         public void Decode_SRLR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SRLR8>(instruction);
         }
@@ -354,7 +362,7 @@ namespace BremuGb.Cpu.Tests
         [TestCase(0x37)]
         public void Decode_SWAPR8(byte opcode)
         {
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SWAPR8>(instruction);
         }
@@ -363,7 +371,7 @@ namespace BremuGb.Cpu.Tests
         {
             byte opcode = 0x16;
 
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RL_HL_>(instruction);
         }
@@ -372,7 +380,7 @@ namespace BremuGb.Cpu.Tests
         {
             byte opcode = 0x06;
 
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RLC_HL_>(instruction);
         }
@@ -381,7 +389,7 @@ namespace BremuGb.Cpu.Tests
         {
             byte opcode = 0x1E;
 
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RR_HL_>(instruction);
         }
@@ -390,7 +398,7 @@ namespace BremuGb.Cpu.Tests
         {
             byte opcode = 0x0E;
 
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<RRC_HL_>(instruction);
         }
@@ -399,7 +407,7 @@ namespace BremuGb.Cpu.Tests
         {
             byte opcode = 0x26;
 
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SLA_HL_>(instruction);
         }
@@ -408,7 +416,7 @@ namespace BremuGb.Cpu.Tests
         {
             byte opcode = 0x2E;
 
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SRA_HL_>(instruction);
         }
@@ -417,7 +425,7 @@ namespace BremuGb.Cpu.Tests
         {
             byte opcode = 0x3E;
 
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SRL_HL_>(instruction);
         }
@@ -426,7 +434,7 @@ namespace BremuGb.Cpu.Tests
         {
             byte opcode = 0x36;
 
-            var instruction = InstructionDecoder.GetPrefixedInstructionFromOpcode(opcode);
+            var instruction = _instructionDecoder.DecodeInstruction(opcode, true);
 
             Assert.IsInstanceOf<SWAP_HL_>(instruction);
         }
