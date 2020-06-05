@@ -15,7 +15,7 @@
         public const ushort DmaTransfer = 0xFF46;
 
         public const ushort BackgroundPalette  = 0xFF47;
-        public const ushort ObjectPaletteData0 = 0xFF48;
-        public const ushort ObjectPaletteData1 = 0xFF49;        
+        public const ushort ObjectPalette0 = 0xFF48;
+        public const ushort ObjectPalette1 = 0xFF49;        
     }
 }

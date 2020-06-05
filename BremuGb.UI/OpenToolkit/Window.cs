@@ -121,6 +121,8 @@ namespace BremuGb.UI
 
         private JoypadState GetJoypadState()
         {
+            //TODO: Only one directional key can be pressed at once
+
             JoypadState joypadState = 0;
 
             if (KeyboardState.IsKeyDown(Key.Enter))

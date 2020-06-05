@@ -1,5 +1,6 @@
 ﻿using BremuGb.Memory;
 using BremuGb.Common.Constants;
+using BremuGb.Video.Sprites;
 
 namespace BremuGb.Video
 {
@@ -8,6 +9,7 @@ namespace BremuGb.Video
         private IRandomAccessMemory _mainMemory;
 
         private PixelProcessingUnitStateMachine _stateMachine;
+        internal SpriteTable SpriteTable;
 
         private int _currentLine;
 
@@ -29,6 +31,9 @@ namespace BremuGb.Video
         internal byte ScrollY { get; set; }
         internal byte WindowX { get; set; }
         internal byte WindowY { get; set; }
+
+        public byte ObjectPalette0 { get; internal set; }
+        public byte ObjectPalette1 { get; internal set; }
 
         internal readonly byte[] TileData;
         internal readonly byte[] FirstTileMap;
@@ -60,8 +65,8 @@ namespace BremuGb.Video
         internal int WindowEnable { get; set; }
         internal int _bgWindowTileData;
         internal int BackgroundTileMap { get; set; }
-        private int SpriteSize { get; set; }
-        private int SpriteEnable { get; set; }
+        internal int SpriteSize { get; set; }
+        internal int SpriteEnable { get; set; }
         internal int BackgroundEnable { get; set; }
 
         internal byte BackgroundPalette = 0xFC;
@@ -125,6 +130,8 @@ namespace BremuGb.Video
 
             _stateMachine = new PixelProcessingUnitStateMachine(this);
 
+            SpriteTable = new SpriteTable();
+
             FirstTileMap = new byte[32 * 32];
             SecondTileMap = new byte[32 * 32];
             TileData = new byte[6144];
@@ -162,7 +169,7 @@ namespace BremuGb.Video
             {
                 _currentLine = value;
             }
-        }
+        }       
 
         internal void AdvanceMachineCycle()
         {

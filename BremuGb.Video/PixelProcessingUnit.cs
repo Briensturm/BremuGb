@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using BremuGb.Memory;
 using BremuGb.Common;
 using BremuGb.Common.Constants;
-using System.Security.Cryptography.X509Certificates;
 
 namespace BremuGb.Video
 {
@@ -35,14 +34,21 @@ namespace BremuGb.Video
                                                         VideoRegisters.WindowX,
                                                         VideoRegisters.WindowY,
                                                         VideoRegisters.LineYCompare,
-                                                        VideoRegisters.BackgroundPalette};
+                                                        VideoRegisters.BackgroundPalette,
+                                                        VideoRegisters.ObjectPalette0,
+                                                        VideoRegisters.ObjectPalette1};
 
-            var vramAddresses = new ushort[0x9FFF - 0x8000 + 1];
+            var vramAddresses = new ushort[0xA000 - 0x8000];
             for (int i = 0; i < vramAddresses.Length; i++)
                 vramAddresses[i] = (ushort)(i + 0x8000);
 
+            var oamAddresses = new ushort[0xFEA0 - 0xFE00];
+            for(int i = 0; i < oamAddresses.Length; i++)
+                oamAddresses[i] = (ushort)(i + 0xFE00);
+
             addressList.AddRange(videoRegisterAddresses);
             addressList.AddRange(vramAddresses);
+            addressList.AddRange(oamAddresses);
 
             return addressList.AsEnumerable();
         }
@@ -55,6 +61,8 @@ namespace BremuGb.Video
                 return _context.FirstTileMap[address - 0x9800];
             else if (address >= 0x9C00 && address <= 0x9FFF)
                 return _context.SecondTileMap[address - 0x9C00];
+            else if (address >= 0xFE00 && address <= 0xFE9F)
+                return _context.SpriteTable.ReadSpriteAttributeTable(address);
 
             return address switch
             {
@@ -67,6 +75,8 @@ namespace BremuGb.Video
                 VideoRegisters.WindowX => _context.WindowX,
                 VideoRegisters.WindowY => _context.WindowY,
                 VideoRegisters.BackgroundPalette => _context.BackgroundPalette,
+                VideoRegisters.ObjectPalette0 => _context.ObjectPalette0,
+                VideoRegisters.ObjectPalette1 => _context.ObjectPalette1,
                 _ => throw new InvalidOperationException($"0x{address:X2} is not a valid ppu address"),
             };
         }
@@ -87,6 +97,10 @@ namespace BremuGb.Video
             {
                 _logger.Log($"Writing tile map 1 data 0x{data:X2} at 0x{address:X2}");
                 _context.SecondTileMap[address - 0x9C00] = data;
+            }
+            else if(address >= 0xFE00 && address <= 0xFE9F)
+            {
+                _context.SpriteTable.WriteSpriteAttributeTable(address, data);
             }
             else
             {
@@ -125,6 +139,14 @@ namespace BremuGb.Video
 
                     case VideoRegisters.BackgroundPalette:
                         _context.BackgroundPalette = data;
+                        break;
+
+                    case VideoRegisters.ObjectPalette0:
+                        _context.ObjectPalette0 = data;
+                        break;
+
+                    case VideoRegisters.ObjectPalette1:
+                        _context.ObjectPalette1 = data;
                         break;
 
                     default:
