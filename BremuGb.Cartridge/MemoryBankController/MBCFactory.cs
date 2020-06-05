@@ -7,9 +7,9 @@ namespace BremuGb.Cartridge.MemoryBankController
         public static IMemoryBankController CreateMBC(IRomLoader romLoader)
         {
             var romData = romLoader.LoadRom();
-            var mbcType = romData[0x0147];
+            var cartridgeType = romData[0x0147];
 
-            switch (mbcType)
+            switch (cartridgeType)
             {
                 case 0x00:
                     return new MBC0(romData);
@@ -17,8 +17,10 @@ namespace BremuGb.Cartridge.MemoryBankController
                 case 0x02:
                 case 0x03:
                     return new MBC1(romData);
+                case 0x1B:
+                    return new MBC5(romData);
                 default:
-                    throw new NotSupportedException($"MBC type 0x{mbcType:X2} is not supported");
+                    throw new NotSupportedException($"MBC type 0x{cartridgeType:X2} is not supported");
             }
         }
     }

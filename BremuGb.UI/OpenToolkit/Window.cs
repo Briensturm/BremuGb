@@ -52,6 +52,7 @@ namespace BremuGb.UI
             //todo: OpenGL cleanup
 
             _gameBoy.SaveLog("log.txt");
+            _gameBoy.SaveRam();
 
             base.Close();
         }

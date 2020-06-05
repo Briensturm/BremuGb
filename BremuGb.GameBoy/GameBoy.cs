@@ -5,6 +5,7 @@ using BremuGb.Cpu;
 using BremuGb.Memory;
 using BremuGb.Video;
 using BremuGb.Input;
+using System.IO;
 
 namespace BremuGb
 {
@@ -16,6 +17,9 @@ namespace BremuGb
         private readonly Timer _timer;        
         private readonly DmaController _dmaController;
         private readonly Joypad _joypad;
+
+        private readonly IMemoryBankController _mbc;
+        private readonly IRamManager _ramManager;
 
         private readonly Logger _logger;
         
@@ -35,9 +39,12 @@ namespace BremuGb
             _cpuCore = new CpuCore(mainMemoryProxy, new CpuState(), _logger);
 
             IRomLoader romLoader = new FileRomLoader(romPath);
-            IMemoryBankController mbc = MBCFactory.CreateMBC(romLoader);
+            _ramManager = new FileRamManager(Path.ChangeExtension(romPath, ".ram"));
 
-            mainMemoryProxy.RegisterMemoryAccessDelegate(mbc as IMemoryAccessDelegate);
+            _mbc = MBCFactory.CreateMBC(romLoader);
+            _mbc.LoadRam(_ramManager);
+
+            mainMemoryProxy.RegisterMemoryAccessDelegate(_mbc as IMemoryAccessDelegate);
             mainMemory.RegisterMemoryAccessDelegate(_ppu);
             mainMemory.RegisterMemoryAccessDelegate(_timer);
             mainMemory.RegisterMemoryAccessDelegate(_joypad);
@@ -53,6 +60,11 @@ namespace BremuGb
             _timer.AdvanceMachineCycle();
 
             return _ppu.AdvanceMachineCycle();
+        }
+
+        public void SaveRam()
+        {
+            _mbc.SaveRam(_ramManager);
         }
 
         public byte[] GetScreen()
