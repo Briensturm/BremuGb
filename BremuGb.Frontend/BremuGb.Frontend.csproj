@@ -31,11 +31,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="02-len ctr.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="mario.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Shader\FragmentShader.txt">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Shader\VertexShader.txt">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="wario.gb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

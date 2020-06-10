@@ -1,6 +1,6 @@
 ﻿namespace BremuGb.Audio
 {
-    public interface IAudioChannel
+    internal class SoundOutputTerminal
     {
     }
 }

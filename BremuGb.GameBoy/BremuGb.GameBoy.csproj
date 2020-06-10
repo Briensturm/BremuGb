@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BremuGb.Audio\BremuGb.Audio.csproj" />
     <ProjectReference Include="..\BremuGb.Cartridge\BremuGb.Cartridge.csproj" />
     <ProjectReference Include="..\BremuGb.Cpu\BremuGb.Cpu.csproj" />
     <ProjectReference Include="..\BremuGb.Input\BremuGb.Input.csproj" />

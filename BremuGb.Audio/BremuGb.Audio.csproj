@@ -6,4 +6,9 @@
 	<OutputPath>..\bin\$(Configuration)\$(Platform)\</OutputPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BremuGb.Common\BremuGb.Common.csproj" />
+    <ProjectReference Include="..\BremuGb.Memory\BremuGb.Memory.csproj" />
+  </ItemGroup>
+
 </Project>

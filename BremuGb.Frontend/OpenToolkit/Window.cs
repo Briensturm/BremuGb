@@ -2,9 +2,10 @@
 using OpenToolkit.Windowing.Common.Input;
 using OpenToolkit.Windowing.Common;
 using OpenToolkit.Graphics.OpenGL;
+
 using BremuGb.Input;
 
-namespace BremuGb.UI
+namespace BremuGb.Frontend
 {
     public class Window : GameWindow
     {
@@ -12,12 +13,17 @@ namespace BremuGb.UI
         private Texture _texture;
         private Quad _quad;
 
+        private SoundPlayer _soundPlayer;
+
         private readonly GameBoy _gameBoy;
 
         public Window(NativeWindowSettings nativeWindowSettings, GameWindowSettings gameWindowSettings, GameBoy gameBoy)
             : base(gameWindowSettings, nativeWindowSettings)
         {
             _gameBoy = gameBoy;
+
+            _soundPlayer = new SoundPlayer();
+
             //_emulator.EnableLogging();
         }
 
@@ -51,6 +57,8 @@ namespace BremuGb.UI
         {
             //todo: OpenGL cleanup
 
+            _soundPlayer.Close();
+
             _gameBoy.SaveLog("log.txt");
             _gameBoy.SaveRam();
 
@@ -59,6 +67,25 @@ namespace BremuGb.UI
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            var joypadState = GetJoypadState();
+
+            int audioCounter = 0;
+
+            for (int i = 0; i < 16384; i++)
+            {
+                var nextFrameReady = _gameBoy.AdvanceMachineCycle(joypadState);
+
+                if (nextFrameReady)
+                    UpdateTexture(_gameBoy.GetScreen());
+
+                audioCounter++;
+                if (audioCounter == 23)
+                {
+                    audioCounter = 0;
+                    _soundPlayer.QueueSample(_gameBoy.GetAudioSample());
+                }
+            }
+
             //GL.Clear(ClearBufferMask.ColorBufferBit);
             _quad.Render();
 
@@ -72,16 +99,7 @@ namespace BremuGb.UI
         {
             //todo: separate render and update handlers
 
-            var joypadState = GetJoypadState();
-
-            for (int i = 0; i < 17556; i++)
-            {
-                var nextFrameReady = _gameBoy.AdvanceMachineCycle(joypadState);
-
-                if (nextFrameReady)
-                    UpdateTexture(_gameBoy.GetScreen());
-            }
-            
+                      
 
             if (KeyboardState.IsKeyDown(Key.Escape))        
                 Close();            
@@ -122,8 +140,6 @@ namespace BremuGb.UI
 
         private JoypadState GetJoypadState()
         {
-            //TODO: Only one directional key can be pressed at once
-
             JoypadState joypadState = 0;
 
             if (KeyboardState.IsKeyDown(Key.Enter))
@@ -134,13 +150,13 @@ namespace BremuGb.UI
                 joypadState |= JoypadState.A;
             if (KeyboardState.IsKeyDown(Key.B))
                 joypadState |= JoypadState.B;
-            if (KeyboardState.IsKeyDown(Key.Left))
+            if (KeyboardState.IsKeyDown(Key.Left) && KeyboardState.IsKeyUp(Key.Right))
                 joypadState |= JoypadState.Left;
-            if (KeyboardState.IsKeyDown(Key.Right))
+            if (KeyboardState.IsKeyDown(Key.Right) && KeyboardState.IsKeyUp(Key.Left))
                 joypadState |= JoypadState.Right;
-            if (KeyboardState.IsKeyDown(Key.Up))
+            if (KeyboardState.IsKeyDown(Key.Up) && KeyboardState.IsKeyUp(Key.Down))
                 joypadState |= JoypadState.Up;
-            if (KeyboardState.IsKeyDown(Key.Down))
+            if (KeyboardState.IsKeyDown(Key.Down) && KeyboardState.IsKeyUp(Key.Up))
                 joypadState |= JoypadState.Down;
 
             return joypadState;

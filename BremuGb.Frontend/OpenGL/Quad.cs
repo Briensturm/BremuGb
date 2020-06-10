@@ -1,6 +1,6 @@
 ﻿using OpenToolkit.Graphics.OpenGL;
 
-namespace BremuGb.UI
+namespace BremuGb.Frontend
 {
     internal class Quad
     {

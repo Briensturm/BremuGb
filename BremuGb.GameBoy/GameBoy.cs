@@ -6,6 +6,7 @@ using BremuGb.Memory;
 using BremuGb.Video;
 using BremuGb.Input;
 using System.IO;
+using BremuGb.Audio;
 
 namespace BremuGb
 {
@@ -16,6 +17,7 @@ namespace BremuGb
         private readonly PixelProcessingUnit _ppu;
         private readonly Timer _timer;        
         private readonly DmaController _dmaController;
+        private readonly AudioProcessingUnit _apu;
         private readonly Joypad _joypad;
 
         private readonly IMemoryBankController _mbc;
@@ -36,6 +38,8 @@ namespace BremuGb
             _ppu = new PixelProcessingUnit(mainMemory, _logger);
             _joypad = new Joypad();
 
+            _apu = new AudioProcessingUnit(mainMemory);
+
             _cpuCore = new CpuCore(mainMemoryProxy, new CpuState(), _logger);
 
             IRomLoader romLoader = new FileRomLoader(romPath);
@@ -48,6 +52,7 @@ namespace BremuGb
             mainMemory.RegisterMemoryAccessDelegate(_ppu);
             mainMemory.RegisterMemoryAccessDelegate(_timer);
             mainMemory.RegisterMemoryAccessDelegate(_joypad);
+            mainMemory.RegisterMemoryAccessDelegate(_apu);
         }
 
         public bool AdvanceMachineCycle(JoypadState joypadState)
@@ -59,7 +64,14 @@ namespace BremuGb
             _dmaController.AdvanceMachineCycle();
             _timer.AdvanceMachineCycle();
 
+            _apu.AdvanceMachineCycle();
+
             return _ppu.AdvanceMachineCycle();
+        }
+
+        public byte GetAudioSample()
+        {
+            return _apu.CurrentSample;
         }
 
         public void SaveRam()

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.UI", "BremuGb.UI\BremuGb.UI.csproj", "{979C33F9-BCEC-4B6C-9A53-3C89A2EEC01E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Frontend", "BremuGb.Frontend\BremuGb.Frontend.csproj", "{979C33F9-BCEC-4B6C-9A53-3C89A2EEC01E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Cpu", "BremuGb.Cpu\BremuGb.Cpu.csproj", "{1BC0414A-E6F9-4A51-8788-A982560B47BF}"
 EndProject
@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Cpu.Tests", "Tests\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Timer", "BremuGb.Timer\BremuGb.Timer.csproj", "{D61BFE7F-8C17-4B1D-9A55-EC02CC983C43}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{0D47978E-2E5A-4178-BB7C-78BC71A41847}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{0D47978E-2E5A-4178-BB7C-78BC71A41847}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.GameBoy", "BremuGb.GameBoy\BremuGb.GameBoy.csproj", "{6DAC63A9-7858-4176-B52D-2923760CE8E7}"
 EndProject

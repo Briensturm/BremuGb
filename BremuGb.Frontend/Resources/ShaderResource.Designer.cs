@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace BremuGb.UI.Resources {
+namespace BremuGb.Frontend.Resources {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace BremuGb.UI.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("BremuGb.UI.Resources.ShaderResource", typeof(ShaderResource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("BremuGb.Frontend.Resources.ShaderResource", typeof(ShaderResource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

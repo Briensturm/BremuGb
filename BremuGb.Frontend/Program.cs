@@ -1,12 +1,12 @@
 ﻿using OpenToolkit.Windowing.Desktop;
 using OpenToolkit.Mathematics;
 
-namespace BremuGb.UI
+namespace BremuGb.Frontend
 {
     class Program
     {
         static void Main()
-        { 
+        {
             RunWithGui();
         }
 
@@ -21,7 +21,7 @@ namespace BremuGb.UI
 
             GameWindowSettings gameWindowSettings = new GameWindowSettings
             {
-                RenderFrequency = 60
+                RenderFrequency = 64
             };
            
             using var window = new Window(nativeWindowSettings, gameWindowSettings, new GameBoy("rom.gb"));

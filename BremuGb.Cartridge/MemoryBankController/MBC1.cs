@@ -63,8 +63,11 @@ namespace BremuGb.Cartridge.MemoryBankController
             else if(address >= 0 & address <= 0x1FFF)
                 _ramEnable = (data & 0xF) == 0xA;
 
-            else if (address >= 0xA000 && address <= 0xBFFF && _ramEnable)
+            else if (address >= 0xA000 && address <= 0xBFFF)
             {
+                if (!_ramEnable)
+                    return;
+
                 if (_bankingMode == 0)
                     _ramData[address - 0xA000] = data;
                 else
