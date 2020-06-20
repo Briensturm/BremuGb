@@ -63,12 +63,8 @@ namespace BremuGb.Cpu
                     _cpuState.HaltMode = false;
                     _cpuState.StopMode = false;
 
-                    //TODO: cache LDSISR instruction
                     if (_cpuState.InterruptMasterEnable)
-                    {
-                        CurrentInstruction = new LDISR(readyInterrupts);
-                        CurrentInstruction.Initialize(0x00);
-                    }
+                        CurrentInstruction = _instructionDecoder.GetInterruptServiceRoutineInstruction(readyInterrupts);
                     else
                         CurrentInstruction = GetNextInstruction();
                 }
@@ -111,7 +107,7 @@ namespace BremuGb.Cpu
                 _cpuState.HaltBug = false;
             }
 
-            return _instructionDecoder.DecodeInstruction(nextOpcode, false);    
+            return _instructionDecoder.DecodeInstruction(nextOpcode);    
         }
 
         private byte GetRequestedAndEnabledInterrupts()

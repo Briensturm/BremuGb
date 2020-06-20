@@ -1,6 +1,8 @@
 ﻿namespace BremuGb.Audio
 {
-    internal class SoundOutputTerminal
+    public enum SoundOutputTerminal
     {
+        Left = 0,
+        Right = 1,
     }
 }

@@ -5,7 +5,7 @@
         public abstract void AdvanceMachineCycle();
 
         public virtual void ClockEnvelope()
-        {
+        {            
         }
 
         public virtual void ClockLength()

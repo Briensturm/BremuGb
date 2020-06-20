@@ -21,7 +21,8 @@ namespace BremuGb.Frontend
 
             GameWindowSettings gameWindowSettings = new GameWindowSettings
             {
-                RenderFrequency = 64
+                RenderFrequency = 0,
+                UpdateFrequency = 0
             };
            
             using var window = new Window(nativeWindowSettings, gameWindowSettings, new GameBoy("rom.gb"));

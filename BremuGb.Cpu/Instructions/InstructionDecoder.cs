@@ -10,13 +10,23 @@ namespace BremuGb.Cpu
         private Dictionary<byte, IInstruction> _instructionCache;
         private Dictionary<byte, IInstruction> _prefixedInstructionCache;
 
+        private LDISR _interruptInstruction;
+
         public InstructionDecoder()
         {
             _instructionCache = new Dictionary<byte, IInstruction>();
             _prefixedInstructionCache = new Dictionary<byte, IInstruction>();
+
+            _interruptInstruction = new LDISR();
         }
 
-        public IInstruction DecodeInstruction(byte opcode, bool isPrefixed)
+        public IInstruction GetInterruptServiceRoutineInstruction(byte readyInterrupts)
+        {
+            _interruptInstruction.Prepare(readyInterrupts);
+            return _interruptInstruction;
+        }
+
+        public IInstruction DecodeInstruction(byte opcode, bool isPrefixed = false)
         {
             IInstruction instruction;
 

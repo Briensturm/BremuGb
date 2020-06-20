@@ -10,17 +10,21 @@ namespace BremuGb.Audio
         {
             _timer++;
             if (_timer == 8)
-                _timer = 0;            
+                _timer = 0;
+
+            var clockLength = _timer % 2 == 0;
+            var clockEnvelope = _timer == 7;
+            var clockSweep = _timer == 2 || _timer == 6;
 
             foreach(var soundChannel in soundChannels)
             {
-                if(_timer % 2 == 0)
+                if(clockLength)
                     soundChannel.ClockLength();
 
-                if (_timer == 7)
+                if (clockEnvelope)
                     soundChannel.ClockEnvelope();
 
-                if (_timer == 2 || _timer == 6)
+                if (clockSweep)
                     soundChannel.ClockSweep();
             }
         }

@@ -30,17 +30,13 @@ namespace BremuGb.Video
                 var windowX = _context.WindowX-6;
                 var windowY = _context.WindowY;
 
-                int spriteCount = 0;
                 foreach (Sprite sprite in _context.SpriteTable.Sprites)
                 {
-                    if (_context.CurrentLine == 0)
-                        _ = 0;
-
                     if (SpriteInterceptsCurrentScanline(sprite))
                         _spritesToBeDrawn.Add(sprite);
 
                     //do not render more than 10 sprites per line
-                    if (spriteCount == 10)
+                    if (_spritesToBeDrawn.Count == 10)
                         break;
                 }
 
@@ -257,9 +253,9 @@ namespace BremuGb.Video
             else
                 throw new InvalidOperationException("invalid shade: " + shade);
 
-            _context.ScreenBitmap[y * 160 * 3 + x * 3] = r;
-            _context.ScreenBitmap[y * 160 * 3 + x * 3 + 1] = g;
-            _context.ScreenBitmap[y * 160 * 3 + x * 3 + 2] = b;
+            _context.WriteToScreenBitmap(r, y * 160 * 3 + x * 3);
+            _context.WriteToScreenBitmap(g, y * 160 * 3 + x * 3 + 1);
+            _context.WriteToScreenBitmap(b, y * 160 * 3 + x * 3 + 2);
         }
     }
 }

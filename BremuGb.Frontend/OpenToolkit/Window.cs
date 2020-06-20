@@ -4,6 +4,7 @@ using OpenToolkit.Windowing.Common;
 using OpenToolkit.Graphics.OpenGL;
 
 using BremuGb.Input;
+using BremuGb.Audio.SoundChannels;
 
 namespace BremuGb.Frontend
 {
@@ -16,6 +17,9 @@ namespace BremuGb.Frontend
         private SoundPlayer _soundPlayer;
 
         private readonly GameBoy _gameBoy;
+
+        private byte[] _previousScreenReference;
+        int _audioCounter = 0;
 
         public Window(NativeWindowSettings nativeWindowSettings, GameWindowSettings gameWindowSettings, GameBoy gameBoy)
             : base(gameWindowSettings, nativeWindowSettings)
@@ -67,39 +71,40 @@ namespace BremuGb.Frontend
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            var joypadState = GetJoypadState();
+            var screenReference = _gameBoy.GetScreen();
 
-            int audioCounter = 0;
-
-            for (int i = 0; i < 16384; i++)
+            if (screenReference != _previousScreenReference)
             {
-                var nextFrameReady = _gameBoy.AdvanceMachineCycle(joypadState);
+                UpdateTexture(screenReference);
+                _previousScreenReference = screenReference;
 
-                if (nextFrameReady)
-                    UpdateTexture(_gameBoy.GetScreen());
+                _quad.Render();
 
-                audioCounter++;
-                if (audioCounter == 23)
-                {
-                    audioCounter = 0;
-                    _soundPlayer.QueueSample(_gameBoy.GetAudioSample());
-                }
+                SwapBuffers();
+
+                OpenGlUtility.ThrowIfOpenGlError();
             }
 
-            //GL.Clear(ClearBufferMask.ColorBufferBit);
-            _quad.Render();
-
-            SwapBuffers();
-
-            OpenGlUtility.ThrowIfOpenGlError();
             base.OnRenderFrame(e);
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            //todo: separate render and update handlers
+            var joypadState = GetJoypadState();
 
-                      
+            //for (int i = 0; i < 16384; i++)
+            for (int i = 0; i < 16384; i++)
+            {
+                _gameBoy.AdvanceMachineCycle(joypadState);
+
+                _audioCounter++;
+                if (_audioCounter == 23)
+                {
+                    _audioCounter = 0;
+                    _soundPlayer.QueueAudioSample(Channels.Channel1, _gameBoy.GetAudioSample(Channels.Channel1));
+                    _soundPlayer.QueueAudioSample(Channels.Channel2, _gameBoy.GetAudioSample(Channels.Channel2));
+                }
+            }            
 
             if (KeyboardState.IsKeyDown(Key.Escape))        
                 Close();            
@@ -117,9 +122,7 @@ namespace BremuGb.Frontend
             }
 
             if (KeyboardState.IsKeyDown(Key.L) && LastKeyboardState.IsKeyUp(Key.L))
-            {
                 _gameBoy.EnableLogging();
-            }
 
             base.OnUpdateFrame(e);
         }         

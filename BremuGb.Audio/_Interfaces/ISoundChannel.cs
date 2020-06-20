@@ -1,13 +1,13 @@
 ﻿namespace BremuGb.Audio
 {
-    public interface ISoundChannel
+    internal interface ISoundChannel
     {
-        public void ClockLength();
-        public void ClockEnvelope();
-        public void ClockSweep();
+        void ClockLength();
+        void ClockEnvelope();
+        void ClockSweep();
 
-        public byte GetSample();
+        byte GetSample();
 
-        public void AdvanceMachineCycle();
+        void AdvanceMachineCycle();
     }
 }

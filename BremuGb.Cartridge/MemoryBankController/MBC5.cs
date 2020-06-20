@@ -14,7 +14,10 @@ namespace BremuGb.Cartridge.MemoryBankController
         public override byte DelegateMemoryRead(ushort address)
         {
             if (address > 0x7FFF)
-                throw new InvalidOperationException($"MBC0: Memory read at out of bounds address 0x{address:X4}");
+            {
+                //TODO handle ram stuff
+                return 0;
+            }
 
             if(address <= 0x3FFF)
                 return _romData[address];

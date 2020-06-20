@@ -20,12 +20,34 @@ namespace BremuGb.Video
 
         private bool _statSignal;
 
+        private bool _buffersSwapped = false;
+
         //when setting lycreg:
         // if (ShouldStatIrqBeRaised())
         //                  RaiseStatInterrupt();
         internal byte LycRegister;
 
-        internal byte[] ScreenBitmap;
+        internal byte[] ScreenBitmap
+        {
+            get 
+            {
+                if (_buffersSwapped)
+                    return _screenBuffer1;
+
+                return _screenBuffer0;
+            }
+        }
+
+        internal void WriteToScreenBitmap(byte data, int index)
+        {
+            if (_buffersSwapped)
+                _screenBuffer0[index] = data;
+            else
+                _screenBuffer1[index] = data;
+        }
+
+        private byte[] _screenBuffer0;
+        private byte[] _screenBuffer1;
 
         internal byte ScrollX { get; set; }
         internal byte ScrollY { get; set; }
@@ -39,7 +61,6 @@ namespace BremuGb.Video
         internal readonly byte[] FirstTileMap;
         internal readonly byte[] SecondTileMap;
 
-        internal bool NextFrameReady;
         internal int LcdEnable;
 
         private void SetLcdEnable(int value)
@@ -53,12 +74,12 @@ namespace BremuGb.Video
 
                 for (int i = 0; i < ScreenBitmap.Length / 3; i++)
                 {
-                    ScreenBitmap[i * 3] = 175;
-                    ScreenBitmap[i * 3 + 1] = 203;
-                    ScreenBitmap[i * 3 + 2] = 70;
+                    WriteToScreenBitmap(175, i * 3);
+                    WriteToScreenBitmap(203, i * 3 +1);
+                    WriteToScreenBitmap(70, i * 3 +2);
                 }
 
-                NextFrameReady = true;
+                SwapBuffers();
             }
         }
         internal int WindowTileMap { get; set; }
@@ -136,7 +157,8 @@ namespace BremuGb.Video
             SecondTileMap = new byte[32 * 32];
             TileData = new byte[6144];
 
-            ScreenBitmap = new byte[Common.Constants.Video.ScreenWidth * Common.Constants.Video.ScreenHeight * 3];
+            _screenBuffer0 = new byte[Common.Constants.Video.ScreenWidth * Common.Constants.Video.ScreenHeight * 3];
+            _screenBuffer1 = new byte[Common.Constants.Video.ScreenWidth * Common.Constants.Video.ScreenHeight * 3];
 
             LcdControl = 0x91;
         }
@@ -151,8 +173,7 @@ namespace BremuGb.Video
             var currentIf = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
             _mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(currentIf | 0x01));
 
-            NextFrameReady = true;
-
+            SwapBuffers();
             //todo: request interrupt, but not if IF is executed
         }
 
@@ -207,6 +228,11 @@ namespace BremuGb.Video
             _mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(currentIf | 0x02));
 
             //todo: request interrupt, but not if IF is executed
+        }
+    
+        private void SwapBuffers()
+        {
+            _buffersSwapped = !_buffersSwapped;
         }
     }
 }

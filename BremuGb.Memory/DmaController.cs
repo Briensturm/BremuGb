@@ -30,7 +30,7 @@ namespace BremuGb.Memory
                 if (value > 0xF1)
                     throw new InvalidOperationException($"DMA transfer address out of bounds: 0x{value:X2}");
 
-                _logger.Log($"DMA transfer started: 0x{value:X2}");
+                //_logger.Log($"DMA transfer started: 0x{value:X2}");
 
                 _dmaRegister = value;
 
@@ -63,14 +63,14 @@ namespace BremuGb.Memory
             var sourceByte = _mainMemory.ReadByte((ushort)((DmaRegister << 8) | _currentAddressLsb));
             _mainMemory.WriteByte((ushort)((0xFE << 8) | _currentAddressLsb), sourceByte);
 
-            _logger.Log($"DMA transfer copied byte at: 0x{_currentAddressLsb:X2}");
+            //_logger.Log($"DMA transfer copied byte at: 0x{_currentAddressLsb:X2}");
 
             _currentAddressLsb++;
 
             //stop dma transfer when all bytes are copied
             if (_currentAddressLsb > 0x9F)
             {
-                _logger.Log("DMA transfer done");
+                //_logger.Log("DMA transfer done");
                 IsDmaRunning = false;
             }
         }       

@@ -40,13 +40,12 @@ namespace BremuGb.IntegrationTests
         private byte[] RunTestRom(string romPath, int cycleCount)
         {
             var completedCycles = 0;
-            var frameReady = false;
 
             var gameBoy = new GameBoy(romPath);
 
-            while (completedCycles < cycleCount || !frameReady)
+            while (completedCycles < cycleCount)
             {
-                frameReady = gameBoy.AdvanceMachineCycle(Input.JoypadState.None);
+                gameBoy.AdvanceMachineCycle(Input.JoypadState.None);
                 completedCycles++;
             }
 
@@ -66,9 +65,7 @@ namespace BremuGb.IntegrationTests
             var array = MemoryMarshal.AsBytes(span).ToArray();
 
             for(int i = 0; i<array.Length; i++)
-            {
                 Assert.AreEqual(array[i], actualScreen[i]);
-            }
         }
     }
 }

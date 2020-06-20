@@ -4,7 +4,7 @@
     {
         public byte Sweep { get; internal set; }
 
-        public override void AdvanceMachineCycle()
+        /*public override void AdvanceMachineCycle()
         {
         }
 
@@ -23,6 +23,6 @@
         public override byte GetSample()
         {
             return 0;
-        }
+        }*/
     }
 }

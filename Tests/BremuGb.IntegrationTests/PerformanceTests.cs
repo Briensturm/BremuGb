@@ -1,5 +1,5 @@
+using System;
 using System.Diagnostics;
-
 using NUnit.Framework;
 
 using BremuGb.Input;
@@ -34,6 +34,8 @@ namespace BremuGb.IntegrationTests
             stopWatch.Stop();
 
             var actualPerformance = 100 * stopWatch.ElapsedMilliseconds / (16.74 * multiplier);
+
+            Console.WriteLine($"Performance: {actualPerformance}%");
 
             if(actualPerformance < expectedPerformance)
                 Assert.Pass($"RunTime: {actualPerformance}%");

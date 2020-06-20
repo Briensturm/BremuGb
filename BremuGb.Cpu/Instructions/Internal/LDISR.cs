@@ -5,21 +5,19 @@ namespace BremuGb.Cpu.Instructions
 {
     public class LDISR : InstructionBase
     {
-        private readonly byte _readyInterrupts;
+        private byte _readyInterrupts;
         protected override int InstructionLength => 5;
 
-        public LDISR(byte readyInterrupts)
+        public void Prepare(byte readyInterrupts)
         {
             _readyInterrupts = readyInterrupts;
+            _remainingCycles = InstructionLength;
         }
 
         public override void ExecuteCycle(ICpuState cpuState, IRandomAccessMemory mainMemory)
         {
             switch(_remainingCycles)
             {
-                case 5:
-                    //Console.WriteLine("Loading interrupt service routine...");
-                    break;
                 case 3:
                     mainMemory.WriteByte(--cpuState.StackPointer, (byte)(cpuState.ProgramCounter >> 8));
                     break;

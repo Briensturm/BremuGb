@@ -17,18 +17,12 @@ namespace BremuGb.Audio
         private NoiseChannel _noiseChannel;
 
         private ISoundChannel[] _soundChannels;
-        
-        private SoundOutputTerminal _soundOutputTerminal1;
-        private SoundOutputTerminal _soundOutputTerminal2;
 
         private FrameSequencer _frameSequencer;
 
         public AudioProcessingUnit(IRandomAccessMemory mainMemory)
         {
             _mainMemory = mainMemory;
-
-            _soundOutputTerminal1 = new SoundOutputTerminal();
-            _soundOutputTerminal2 = new SoundOutputTerminal();
 
             _frameSequencer = new FrameSequencer();
 
@@ -50,13 +44,37 @@ namespace BremuGb.Audio
         public byte MasterVolume { get; private set; }
         public byte SoundOnOff { get; private set; }
 
-        public byte CurrentSample
+        public byte GetCurrentSample(Channels soundChannel)
         {
-            get
+            switch(soundChannel)
             {
-                var sample = ((ISoundChannel)_squareWaveChannel).GetSample();
+                case Channels.Channel1:
+                    return _soundChannels[0].GetSample();
+                case Channels.Channel2:
+                    return _soundChannels[1].GetSample();
+                case Channels.Channel3:
+                    return _soundChannels[2].GetSample();
+                case Channels.Channel4:
+                    return _soundChannels[3].GetSample();
+                default:
+                    throw new InvalidOperationException("Invalid sound channel specified");
+            }
+        }
 
-                return sample;
+        public SoundOutputTerminal GetOutputTerminal(Channels soundChannel)
+        {
+            switch (soundChannel)
+            {
+                case Channels.Channel1:
+                    return SoundOutputTerminal.Left;
+                case Channels.Channel2:
+                    return SoundOutputTerminal.Left;
+                case Channels.Channel3:
+                    return SoundOutputTerminal.Left;
+                case Channels.Channel4:
+                    return SoundOutputTerminal.Left;
+                default:
+                    throw new InvalidOperationException("Invalid sound channel specified");
             }
         }
 
@@ -77,13 +95,6 @@ namespace BremuGb.Audio
 
         public byte DelegateMemoryRead(ushort address)
         {
-            if (address == AudioRegisters.SoundOnOff)
-                _ = 0;
-            if (address == AudioRegisters.MasterVolume)
-                _ = 0;
-            if (address == AudioRegisters.ChannelOutputSelect)
-                _ = 0;
-
             return address switch
             {
                 AudioRegisters.ChannelOutputSelect => ChannelOutputSelect,

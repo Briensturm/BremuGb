@@ -1,12 +1,14 @@
-﻿using BremuGb.Cartridge.MemoryBankController;
+﻿using System.IO;
+
+using BremuGb.Cartridge.MemoryBankController;
 using BremuGb.Cartridge;
 using BremuGb.Common;
 using BremuGb.Cpu;
 using BremuGb.Memory;
 using BremuGb.Video;
 using BremuGb.Input;
-using System.IO;
 using BremuGb.Audio;
+using BremuGb.Audio.SoundChannels;
 
 namespace BremuGb
 {
@@ -55,7 +57,7 @@ namespace BremuGb
             mainMemory.RegisterMemoryAccessDelegate(_apu);
         }
 
-        public bool AdvanceMachineCycle(JoypadState joypadState)
+        public void AdvanceMachineCycle(JoypadState joypadState)
         {
             _joypad.SetJoypadState(joypadState);
 
@@ -65,13 +67,12 @@ namespace BremuGb
             _timer.AdvanceMachineCycle();
 
             _apu.AdvanceMachineCycle();
-
-            return _ppu.AdvanceMachineCycle();
+            _ppu.AdvanceMachineCycle();
         }
 
-        public byte GetAudioSample()
+        public byte GetAudioSample(Channels soundChannel)
         {
-            return _apu.CurrentSample;
+            return _apu.GetCurrentSample(soundChannel);
         }
 
         public void SaveRam()

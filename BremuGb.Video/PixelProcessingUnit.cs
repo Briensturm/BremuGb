@@ -18,8 +18,7 @@ namespace BremuGb.Video
         {
             _logger = logger;
 
-            _context = new PixelProcessingUnitContext(mainMemory);
-            
+            _context = new PixelProcessingUnitContext(mainMemory);            
         }
 
         public IEnumerable<ushort> GetDelegatedAddresses()
@@ -160,20 +159,12 @@ namespace BremuGb.Video
             return _context.ScreenBitmap;
         }
         
-        public bool AdvanceMachineCycle()
+        public void AdvanceMachineCycle()
         {
             if (_context.LcdEnable == 0)
-                return false;
+                return;
 
-            _context.AdvanceMachineCycle();           
-
-            if(_context.NextFrameReady)
-            {
-                _context.NextFrameReady = false;
-                return true;
-            }
-
-            return false;
+            _context.AdvanceMachineCycle();
         }                  
     }
 }

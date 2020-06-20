@@ -34,9 +34,6 @@
     <None Update="02-len ctr.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="mario.gb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="Resources\Shader\FragmentShader.txt">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
