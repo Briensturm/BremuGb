@@ -1,8 +1,10 @@
 ﻿using System;
+using OpenToolkit.Audio.OpenAL;
 
 using BremuGb.Audio.SoundChannels;
 using BremuGb.Frontend.OpenAL;
-using OpenToolkit.Audio.OpenAL;
+
+
 
 namespace BremuGb.Frontend
 {
@@ -21,7 +23,7 @@ namespace BremuGb.Frontend
 			_alDevice = ALC.OpenDevice(null);
 
 			var contextAttributes = new ALContextAttributes();
-			_alContext = ALC.CreateContext(_alDevice, contextAttributes);
+			_alContext = ALC.CreateContext(_alDevice, contextAttributes);			
 
 			ALC.MakeContextCurrent(_alContext);
 
@@ -29,10 +31,25 @@ namespace BremuGb.Frontend
 			_channel2Source = new BufferedAudioSource();
 			_channel3Source = new BufferedAudioSource();
 			_channel4Source = new BufferedAudioSource();
+
+			//TODO: Start the sources synchronously
+
+			var attr = ALC.GetContextAttributes(_alDevice);
+
+			var devices = ALC.GetStringList(GetEnumerationStringList.DeviceSpecifier);
+			foreach(var device in devices)
+			{
+				Console.WriteLine(device);
+			}
 		}
 
 		internal void Close()
 		{
+			_channel1Source.Close();
+			_channel2Source.Close();
+			_channel3Source.Close();
+			_channel4Source.Close();
+
 			ALC.DestroyContext(_alContext);
 			ALC.CloseDevice(_alDevice);
 		}	

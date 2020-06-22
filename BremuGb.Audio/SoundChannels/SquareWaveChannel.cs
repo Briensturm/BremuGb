@@ -117,6 +117,7 @@ namespace BremuGb.Audio.SoundChannels
                 if (_dutyIndex == 8)
                     _dutyIndex = 0;
 
+                //reload timer
                 _timer = 2048 - _frequency;
             }
         }
@@ -146,9 +147,9 @@ namespace BremuGb.Audio.SoundChannels
 
         public override byte GetSample()
         {
+            //length enable and DAC power
             if(_lengthCounter == 0 || (Envelope & 0xF8) == 0)            
                 return 0;
-
 
             int output;
             switch(_dutyPatternSelect)

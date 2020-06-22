@@ -9,8 +9,6 @@ namespace BremuGb.Audio
 {
     public class AudioProcessingUnit : IMemoryAccessDelegate
     {
-        private IRandomAccessMemory _mainMemory;
-
         private SquareWaveSweepChannel _squareWaveSweepChannel;
         private SquareWaveChannel _squareWaveChannel;       
         private WaveChannel _waveChannel;
@@ -20,10 +18,8 @@ namespace BremuGb.Audio
 
         private FrameSequencer _frameSequencer;
 
-        public AudioProcessingUnit(IRandomAccessMemory mainMemory)
+        public AudioProcessingUnit()
         {
-            _mainMemory = mainMemory;
-
             _frameSequencer = new FrameSequencer();
 
             _squareWaveSweepChannel = new SquareWaveSweepChannel();
@@ -63,9 +59,13 @@ namespace BremuGb.Audio
 
         public SoundOutputTerminal GetOutputTerminal(Channels soundChannel)
         {
+            var output = SoundOutputTerminal.None;
+
             switch (soundChannel)
             {
                 case Channels.Channel1:
+                    if ((ChannelOutputSelect & 0x10) == 0x10)
+                        output &= SoundOutputTerminal.Left;
                     return SoundOutputTerminal.Left;
                 case Channels.Channel2:
                     return SoundOutputTerminal.Left;
@@ -95,6 +95,9 @@ namespace BremuGb.Audio
 
         public byte DelegateMemoryRead(ushort address)
         {
+            if (address >= 0xFF30 && address <= 0xFF3F)
+                return _waveChannel.WaveTable[address - 0xFF30];
+
             return address switch
             {
                 AudioRegisters.ChannelOutputSelect => ChannelOutputSelect,
@@ -190,10 +193,15 @@ namespace BremuGb.Audio
                     _noiseChannel.SoundLength = data;
                     break;
             }
+
+            if (address >= 0xFF30 && address <= 0xFF3F)
+                _waveChannel.WaveTable[address - 0xFF30] = data;
         }
 
         public IEnumerable<ushort> GetDelegatedAddresses()
         {
+            var addressList = new List<ushort>();          
+
             var audioRegisterAddresses = new ushort[] { AudioRegisters.ChannelOutputSelect,
                                                         AudioRegisters.MasterVolume,
                                                         AudioRegisters.SoundOnOff,
@@ -214,9 +222,16 @@ namespace BremuGb.Audio
                                                         AudioRegisters.Channel4.Envelope,
                                                         AudioRegisters.Channel4.InitConsecutive,
                                                         AudioRegisters.Channel4.PolynomialCounter,
-                                                        AudioRegisters.Channel4.SoundLength};
+                                                        AudioRegisters.Channel4.SoundLength};            
 
-            return audioRegisterAddresses;
+            var waveRamAddresses = new ushort[0x10];
+            for (int i = 0; i < waveRamAddresses.Length; i++)
+                waveRamAddresses[i] = (ushort)(i + 0xFF30);
+            
+            addressList.AddRange(audioRegisterAddresses);
+            addressList.AddRange(waveRamAddresses);
+
+            return addressList;
         }
     }
 }

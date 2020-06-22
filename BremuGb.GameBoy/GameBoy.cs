@@ -40,7 +40,7 @@ namespace BremuGb
             _ppu = new PixelProcessingUnit(mainMemory, _logger);
             _joypad = new Joypad();
 
-            _apu = new AudioProcessingUnit(mainMemory);
+            _apu = new AudioProcessingUnit();
 
             _cpuCore = new CpuCore(mainMemoryProxy, new CpuState(), _logger);
 

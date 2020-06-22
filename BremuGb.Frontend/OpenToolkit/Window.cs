@@ -92,7 +92,6 @@ namespace BremuGb.Frontend
         {
             var joypadState = GetJoypadState();
 
-            //for (int i = 0; i < 16384; i++)
             for (int i = 0; i < 16384; i++)
             {
                 _gameBoy.AdvanceMachineCycle(joypadState);
@@ -103,6 +102,8 @@ namespace BremuGb.Frontend
                     _audioCounter = 0;
                     _soundPlayer.QueueAudioSample(Channels.Channel1, _gameBoy.GetAudioSample(Channels.Channel1));
                     _soundPlayer.QueueAudioSample(Channels.Channel2, _gameBoy.GetAudioSample(Channels.Channel2));
+                    _soundPlayer.QueueAudioSample(Channels.Channel3, _gameBoy.GetAudioSample(Channels.Channel3));
+                    _soundPlayer.QueueAudioSample(Channels.Channel4, _gameBoy.GetAudioSample(Channels.Channel4));
                 }
             }            
 

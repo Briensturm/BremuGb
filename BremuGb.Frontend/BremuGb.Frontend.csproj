@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="OpenAL.Soft" Version="1.19.1" />
     <PackageReference Include="OpenTK" Version="4.0.0-pre9.1" />
   </ItemGroup>
 

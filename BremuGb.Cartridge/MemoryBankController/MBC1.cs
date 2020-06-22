@@ -41,7 +41,7 @@ namespace BremuGb.Cartridge.MemoryBankController
                     return _ramData[(_upperBits >> 5)*0x2000 + address - 0xA000];
             }
 
-            throw new InvalidOperationException($"MBC0: Memory read at out of bounds address 0x{address:X4}");
+            throw new InvalidOperationException($"MBC1: Memory read at out of bounds address 0x{address:X4}");
         }
 
         public override void DelegateMemoryWrite(ushort address, byte data)
@@ -60,7 +60,7 @@ namespace BremuGb.Cartridge.MemoryBankController
             else if (address >= 0x6000 && address <= 0x7FFF)
                 _bankingMode = data & 0x01;
 
-            else if(address >= 0 & address <= 0x1FFF)
+            else if(address >= 0 && address <= 0x1FFF)
                 _ramEnable = (data & 0xF) == 0xA;
 
             else if (address >= 0xA000 && address <= 0xBFFF)
@@ -75,17 +75,19 @@ namespace BremuGb.Cartridge.MemoryBankController
             }
 
             else
-                throw new InvalidOperationException($"MBC0: Memory write at out of bounds address 0x{address:X4}");
+                throw new InvalidOperationException($"MBC1: Memory write at out of bounds address 0x{address:X4}");
         }
 
         public override void LoadRam(IRamManager ramManager)
         {
-            _ramData = ramManager.LoadRam();
+            if(CartridgeHasBattery())
+                _ramData = ramManager.LoadRam();
         }
 
         public override void SaveRam(IRamManager ramManager)
         {
-            ramManager.SaveRam(_ramData);
+            if (CartridgeHasBattery())
+                ramManager.SaveRam(_ramData);
         }
 
         private bool CartridgeHasBattery()

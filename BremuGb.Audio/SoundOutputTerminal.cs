@@ -2,7 +2,9 @@
 {
     public enum SoundOutputTerminal
     {
-        Left = 0,
-        Right = 1,
+        None   = 0,
+        Right  = 1,
+        Left   = 2,
+        Center = 3,
     }
 }

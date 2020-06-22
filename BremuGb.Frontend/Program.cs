@@ -25,7 +25,7 @@ namespace BremuGb.Frontend
                 UpdateFrequency = 0
             };
            
-            using var window = new Window(nativeWindowSettings, gameWindowSettings, new GameBoy("rom.gb"));
+            using var window = new Window(nativeWindowSettings, gameWindowSettings, new GameBoy("zelda.gb"));
             window.Run();
         }
     }
