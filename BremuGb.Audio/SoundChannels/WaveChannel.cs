@@ -164,10 +164,28 @@
         public override byte GetSample()
         {
             //length enabled and DAC power
-            if (_lengthCounter == 0 || !_dacOn)
+            if (!IsEnabled())
                 return 0;
 
             return (byte)(_waveBuffer >> _volumeShift);
+        }
+
+        public override bool IsEnabled()
+        {
+            //length enable and DAC power
+            return _lengthCounter != 0 && _dacOn;
+        }
+
+        public override void Disable()
+        {
+            _lengthCounter = 0;
+            _timer = 0;
+
+            OnOff = 0;
+            OutputLevel = 0;
+            FrequencyHi = 0;
+            FrequencyLo = 0;
+            SoundLength = 0;
         }
     }
 }

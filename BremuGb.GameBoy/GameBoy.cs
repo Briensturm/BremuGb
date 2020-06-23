@@ -9,6 +9,7 @@ using BremuGb.Video;
 using BremuGb.Input;
 using BremuGb.Audio;
 using BremuGb.Audio.SoundChannels;
+using System;
 
 namespace BremuGb
 {
@@ -26,7 +27,13 @@ namespace BremuGb
         private readonly IRamManager _ramManager;
 
         private readonly Logger _logger;
-        
+
+        public event EventHandler OutputTerminalChangedEvent
+        {
+            add { _apu.OutputTerminalChangedEvent += value; }
+            remove { _apu.OutputTerminalChangedEvent -= value; }
+        }
+
         public GameBoy(string romPath)
         {
             _logger = new Logger();
@@ -68,6 +75,11 @@ namespace BremuGb
 
             _apu.AdvanceMachineCycle();
             _ppu.AdvanceMachineCycle();
+        }
+
+        public SoundOutputTerminal GetOutputTerminal(Channels soundChannel)
+        {
+            return _apu.GetOutputTerminal(soundChannel);
         }
 
         public byte GetAudioSample(Channels soundChannel)

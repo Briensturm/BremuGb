@@ -1,4 +1,6 @@
-﻿using OpenToolkit.Windowing.Desktop;
+﻿using System;
+
+using OpenToolkit.Windowing.Desktop;
 using OpenToolkit.Windowing.Common.Input;
 using OpenToolkit.Windowing.Common;
 using OpenToolkit.Graphics.OpenGL;
@@ -25,10 +27,19 @@ namespace BremuGb.Frontend
             : base(gameWindowSettings, nativeWindowSettings)
         {
             _gameBoy = gameBoy;
+            _gameBoy.OutputTerminalChangedEvent += new EventHandler(SoundOutputTerminalChanged);
 
             _soundPlayer = new SoundPlayer();
 
             //_emulator.EnableLogging();
+        }
+
+        private void SoundOutputTerminalChanged(object sender, EventArgs e)
+        {
+            _soundPlayer.SetChannelPosition(Channels.Channel1, _gameBoy.GetOutputTerminal(Channels.Channel1));
+            _soundPlayer.SetChannelPosition(Channels.Channel2, _gameBoy.GetOutputTerminal(Channels.Channel2));
+            _soundPlayer.SetChannelPosition(Channels.Channel3, _gameBoy.GetOutputTerminal(Channels.Channel3));
+            _soundPlayer.SetChannelPosition(Channels.Channel4, _gameBoy.GetOutputTerminal(Channels.Channel4));
         }
 
         private void UpdateTexture(byte[] frameBitmap)
@@ -97,7 +108,7 @@ namespace BremuGb.Frontend
                 _gameBoy.AdvanceMachineCycle(joypadState);
 
                 _audioCounter++;
-                if (_audioCounter == 23)
+                if (_audioCounter == 25)
                 {
                     _audioCounter = 0;
                     _soundPlayer.QueueAudioSample(Channels.Channel1, _gameBoy.GetAudioSample(Channels.Channel1));

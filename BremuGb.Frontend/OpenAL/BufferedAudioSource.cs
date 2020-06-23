@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using BremuGb.Audio;
 using OpenToolkit.Audio.OpenAL;
+using OpenToolkit.Mathematics;
 
 namespace BremuGb.Frontend.OpenAL
 {
@@ -16,10 +17,10 @@ namespace BremuGb.Frontend.OpenAL
 
 		private int _source;
 
-		private int _bufferSize = 4410 * 2;
-		private int _sampleRate = 42000;
+		private int _bufferSize = 4410;
+		private int _sampleRate = 41000;
 
-		public BufferedAudioSource()
+		internal BufferedAudioSource()
 		{
 			_sampleList = new List<byte>();
 			_initialList = new List<byte>();
@@ -30,12 +31,37 @@ namespace BremuGb.Frontend.OpenAL
 			_source = AL.GenSource();
 		}
 
-		public void Close()
+		internal void Close()
 		{
 			AL.SourceStop(_source);
 			AL.DeleteSource(_source);
 			AL.DeleteBuffer(_sampleBuffer0);
 			AL.DeleteBuffer(_sampleBuffer1);
+		}
+
+		internal void SetPosition(SoundOutputTerminal position)
+		{
+			switch(position)
+			{
+				case SoundOutputTerminal.Center:
+					AL.Source(_source, ALSource3f.Position, 0.0f, 0.0f, 0.0f);
+					AL.Source(_source, ALSourcef.Gain, 1.0f);
+					break;
+				case SoundOutputTerminal.Left:
+					AL.Source(_source, ALSource3f.Position, -1.0f, 0.0f, 0.0f);
+					AL.Source(_source, ALSourcef.Gain, 1.0f);
+					break;
+				case SoundOutputTerminal.Right:
+					AL.Source(_source, ALSource3f.Position, 1.0f, 0.0f, 0.0f);
+					AL.Source(_source, ALSourcef.Gain, 1.0f);
+					break;
+				case SoundOutputTerminal.None:
+					AL.Source(_source, ALSource3f.Position, 0.0f, 0.0f, 0.0f);
+					
+					//mute
+					AL.Source(_source, ALSourcef.Gain, 0.0f);
+					break;
+			}
 		}
 
 		internal void QueueSample(byte sample)
@@ -49,6 +75,7 @@ namespace BremuGb.Frontend.OpenAL
 				return;
 			}
 
+			if(_sampleList.Count < _bufferSize)
 			_sampleList.Add(sample);
 
 			if (_sampleList.Count >= _bufferSize)

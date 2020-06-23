@@ -163,11 +163,28 @@
 
         public override byte GetSample()
         {
-            if (_lengthCounter == 0 || (Envelope & 0xF8) == 0)
+            if(!IsEnabled())
                 return 0;
 
             //get output from LFSR
             return (byte)((_lfsr & 0x1) * _currentVolume * 17);
+        }
+
+        public override bool IsEnabled()
+        {
+            return _lengthCounter != 0 && (Envelope & 0xF8) != 0;
+        }
+
+        public override void Disable()
+        {
+            _lengthCounter = 0;
+            _envelopeTimer = 0;
+            _timer = 0;
+
+            Envelope = 0;
+            InitConsecutive = 0;
+            PolynomialCounter = 0;
+            SoundLength = 0;
         }
     }
 }

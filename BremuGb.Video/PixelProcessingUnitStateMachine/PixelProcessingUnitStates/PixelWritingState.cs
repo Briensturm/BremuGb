@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using BremuGb.Video.Sprites;
 
@@ -9,6 +10,9 @@ namespace BremuGb.Video
     {
         private int _dotCounter = 0;
         private List<Sprite> _spritesToBeDrawn;
+        private IOrderedEnumerable<Sprite> _orderedSprites;
+
+        private int _lastBackgroundPixel = 0;
 
         public PixelWritingState(PixelProcessingUnitContext context, PixelProcessingUnitStateMachine stateMachine) 
             : base(context, stateMachine)
@@ -40,22 +44,28 @@ namespace BremuGb.Video
                         break;
                 }
 
+                //sort sprites by priorities
+                _orderedSprites = _spritesToBeDrawn.OrderBy(s => s.PositionX).ThenBy(s => s.OamIndex);
+
                 for (byte x = 0; x<160; x++)
                 {
                     //render bg and window
-                    if(_context.WindowEnable == 1 && windowX <= x && windowY <= lineNo)
+                    if (_context.WindowEnable == 1 && windowX <= x && windowY <= lineNo)
                         WritePixel(GetBackgroundPixel((byte)(x + windowX), (byte)(lineNo + windowY), true), _context.BackgroundPalette, x, lineNo);
-                    else if(_context.BackgroundEnable == 1)
+                    else if (_context.BackgroundEnable == 1)
                         WritePixel(GetBackgroundPixel((byte)(x + scrollX), (byte)(lineNo + scrollY)), _context.BackgroundPalette, x, lineNo);
+                    else
+                    {
+                        //todo: what happens for a pixel if window and bg disabled?
 
-                    //todo: what happens for a pixel if window and bg disabled?
+                        _lastBackgroundPixel = 0;                        
+                    }
 
                     //render the sprites
                     if (_spritesToBeDrawn.Count > 0)
                     {              
                         WriteSpritePixel(x);                        
                     }
-
                 }   
 
                 _stateMachine.TransitionTo<HBlankState>();
@@ -64,92 +74,80 @@ namespace BremuGb.Video
 
         private void WriteSpritePixel(int x)
         {
-            Sprite prioritySprite = null;
-
-            foreach(Sprite sprite in _spritesToBeDrawn)
+            foreach(Sprite sprite in _orderedSprites)
             {
                 if (!SpriteInterceptsXPosition(sprite, x))
                     continue;
 
-                if(prioritySprite == null)
+                var tileNumber = 0;
+
+                var tileX = x + 8 - sprite.PositionX;
+                var tileY = _context.CurrentLine + 16 - sprite.PositionY;
+
+                if (_context.SpriteSize == 1)
                 {
-                    prioritySprite = sprite;
-                    continue;
+                    if (tileY > 7 && sprite.FlipY == 0)
+                    {
+                        tileY -= 8;
+                        tileNumber = sprite.TileNumber | 0x01;
+                    }
+                    else if (tileY <= 7 && sprite.FlipY == 0)
+                    {
+                        tileNumber = sprite.TileNumber & 0xFE;
+                    }
+                    else if (tileY > 7 && sprite.FlipY == 1)
+                    {
+                        tileY = 15 - tileY;
+                        tileNumber = sprite.TileNumber & 0xFE;
+                    }
+                    else if (tileY <= 7 && sprite.FlipY == 1)
+                    {
+                        tileNumber = sprite.TileNumber | 0x01;
+                        tileY = 7 - tileY;
+                    }
+                }
+                else
+                {
+                    tileNumber = sprite.TileNumber;
+
+                    if (sprite.FlipY == 1)
+                        tileY = 7 - tileY;
                 }
 
-                if (sprite.PositionX > prioritySprite.PositionX)
-                    prioritySprite = sprite;
-                else if(sprite.PositionX == prioritySprite.PositionX)
+                if (sprite.FlipX == 1)
+                    tileX = 7 - tileX;
+
+                var tileData0 = _context.TileData[(tileNumber << 4) + tileY * 2];
+                var tileData1 = _context.TileData[(tileNumber << 4) + tileY * 2 + 1];
+
+
+                //extract selected pixel
+                var lsbSet = (tileData0 & (0x80 >> tileX)) > 0;
+                var msbSet = (tileData1 & (0x80 >> tileX)) > 0;
+
+                var shade = (msbSet ? 0x2 : 0) | (lsbSet ? 0x1 : 0);                
+
+                //transparent
+                if (shade != 0)
                 {
-                    //priority by oam index
-                    if (sprite.OamIndex < prioritySprite.OamIndex)
-                        prioritySprite = sprite;
-                }
-            }
+                    //check bg priority
+                    var pixelBehindBg = sprite.BgPriority == 1 && (
+                        _lastBackgroundPixel == 1 || _lastBackgroundPixel == 2 || _lastBackgroundPixel == 3);
 
-            //no sprite at given x coordinate
-            if (prioritySprite == null)
-                return;
+                    if (!pixelBehindBg)
+                    {
+                        byte palette;
+                        if (sprite.PaletteNumber == 1)
+                            palette = _context.ObjectPalette1;
+                        else
+                            palette = _context.ObjectPalette0;
 
-            var tileNumber = 0;
+                        WritePixel(shade, palette, x, _context.CurrentLine);
+                    }
 
-            var tileX = x + 8 - prioritySprite.PositionX;
-            var tileY = _context.CurrentLine + 16 - prioritySprite.PositionY;
-
-            if (_context.SpriteSize == 1)
-            {
-                if (tileY > 7 && prioritySprite.FlipY == 0)
-                {
-                    tileY -= 8;
-                    tileNumber = prioritySprite.TileNumber | 0x01;
-                }
-                else if (tileY <= 7 && prioritySprite.FlipY == 0)
-                {
-                    tileNumber = prioritySprite.TileNumber & 0xFE;
-                }
-                else if (tileY > 7 && prioritySprite.FlipY == 1)
-                {
-                    tileY = 15 - tileY;
-                    tileNumber = prioritySprite.TileNumber & 0xFE;
-                }
-                else if (tileY <= 7 && prioritySprite.FlipY == 1)
-                {
-                    tileNumber = prioritySprite.TileNumber | 0x01;
-                    tileY = 7 - tileY;
-                }
-            }
-            else
-            {
-                tileNumber = prioritySprite.TileNumber;
-                
-                if (prioritySprite.FlipY == 1)
-                    tileY = 7 - tileY;
-            }
-
-            if (prioritySprite.FlipX == 1)
-                tileX = 7 - tileX;
-
-            var tileData0 = _context.TileData[(tileNumber << 4) + tileY * 2];
-            var tileData1 = _context.TileData[(tileNumber << 4) + tileY * 2 + 1];
-            
-
-            //extract selected pixel
-            var lsbSet = (tileData0 & (0x80 >> tileX)) > 0;
-            var msbSet = (tileData1 & (0x80 >> tileX)) > 0;
-
-            var shade = (msbSet ? 0x2 : 0) | (lsbSet ? 0x1 : 0);
-
-            byte palette;
-            if (prioritySprite.PaletteNumber == 1)
-                palette = _context.ObjectPalette1;
-            else
-                palette = _context.ObjectPalette0;
-
-            //TODO: Handle priority flag
-            //var pixelBehindBg = (prioritySprite.BgPriority == 1 && _context.ScreenBitmap[])
-
-            if(shade != 0)
-                WritePixel(shade, palette, x, _context.CurrentLine);
+                    break;
+                }                    
+            }           
         }
 
         private bool SpriteInterceptsXPosition(Sprite sprite, int x)
@@ -218,7 +216,8 @@ namespace BremuGb.Video
             var lsbSet = (tileData0 & (0x80 >> tileOffsetX)) > 0;
             var msbSet = (tileData1 & (0x80 >> tileOffsetX)) > 0;
 
-            return (msbSet ? 0x2 : 0) | (lsbSet ? 0x1 : 0);
+            _lastBackgroundPixel = (msbSet ? 0x2 : 0) | (lsbSet ? 0x1 : 0);
+            return _lastBackgroundPixel;
         }
 
         internal void WritePixel(int shade, byte palette, int x, int y)

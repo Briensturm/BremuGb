@@ -3,8 +3,7 @@ using OpenToolkit.Audio.OpenAL;
 
 using BremuGb.Audio.SoundChannels;
 using BremuGb.Frontend.OpenAL;
-
-
+using BremuGb.Audio;
 
 namespace BremuGb.Frontend
 {
@@ -33,14 +32,6 @@ namespace BremuGb.Frontend
 			_channel4Source = new BufferedAudioSource();
 
 			//TODO: Start the sources synchronously
-
-			var attr = ALC.GetContextAttributes(_alDevice);
-
-			var devices = ALC.GetStringList(GetEnumerationStringList.DeviceSpecifier);
-			foreach(var device in devices)
-			{
-				Console.WriteLine(device);
-			}
 		}
 
 		internal void Close()
@@ -74,5 +65,26 @@ namespace BremuGb.Frontend
 					throw new InvalidOperationException("Invalid sound channel specified");
 			}
 		}
-    }
+
+		public void SetChannelPosition(Channels soundChannel, SoundOutputTerminal position)
+		{
+			switch (soundChannel)
+			{
+				case Channels.Channel1:
+					_channel1Source.SetPosition(position);
+					break;
+				case Channels.Channel2:
+					_channel2Source.SetPosition(position);
+					break;
+				case Channels.Channel3:
+					_channel3Source.SetPosition(position);
+					break;
+				case Channels.Channel4:
+					_channel4Source.SetPosition(position);
+					break;
+				default:
+					throw new InvalidOperationException("Invalid sound channel specified");
+			}
+		}
+	}
 }

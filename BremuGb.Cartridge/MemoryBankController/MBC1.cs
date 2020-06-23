@@ -80,17 +80,17 @@ namespace BremuGb.Cartridge.MemoryBankController
 
         public override void LoadRam(IRamManager ramManager)
         {
-            if(CartridgeHasBattery())
+            if(CartridgeCanSave())
                 _ramData = ramManager.LoadRam();
         }
 
         public override void SaveRam(IRamManager ramManager)
         {
-            if (CartridgeHasBattery())
+            if (CartridgeCanSave())
                 ramManager.SaveRam(_ramData);
         }
 
-        private bool CartridgeHasBattery()
+        private bool CartridgeCanSave()
         {
             return _cartridgeType == 0x03;
         }

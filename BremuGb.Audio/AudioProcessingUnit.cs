@@ -32,13 +32,56 @@ namespace BremuGb.Audio
             _soundChannels[1] = _squareWaveChannel;
             _soundChannels[2] = _waveChannel;
             _soundChannels[3] = _noiseChannel;
+
+            ChannelOutputSelect = 0xF3;
+            SoundOnOff = 0x77;
         }
 
         private int _frameSequencerTimer = 0;
 
-        public byte ChannelOutputSelect { get; private set; }
+        private byte _channelOutputSelect;
+        public byte ChannelOutputSelect 
+        { 
+            get => _channelOutputSelect;
+
+            private set
+            {
+                if(_channelOutputSelect != value)
+                {
+                    _channelOutputSelect = value;
+                    NotifyOutputTerminalChanged();
+                }
+            } 
+        }
+        
         public byte MasterVolume { get; private set; }
-        public byte SoundOnOff { get; private set; }
+        public byte SoundOnOff 
+        {
+            get
+            {
+                return (byte)(_lastOnOffValue << 7 |
+                                0x70 |
+                                (_waveChannel.IsEnabled() ? 0x08 : 0x00) |
+                                (_noiseChannel.IsEnabled() ? 0x04 : 0x00) |
+                                (_squareWaveChannel.IsEnabled() ? 0x02 : 0x00) |
+                                (_squareWaveSweepChannel.IsEnabled() ? 0x01 : 0x00));
+            }
+
+            private set
+            {
+                if ((value & 0x80) == 0x80)
+                    _lastOnOffValue = 1;
+                else
+                {
+                    _lastOnOffValue = 0;
+
+                    foreach (var soundChannel in _soundChannels)
+                        soundChannel.Disable();
+                }                    
+            }
+        }
+
+        private int _lastOnOffValue;
 
         public byte GetCurrentSample(Channels soundChannel)
         {
@@ -65,17 +108,44 @@ namespace BremuGb.Audio
             {
                 case Channels.Channel1:
                     if ((ChannelOutputSelect & 0x10) == 0x10)
-                        output &= SoundOutputTerminal.Left;
-                    return SoundOutputTerminal.Left;
+                        output |= SoundOutputTerminal.Left;
+                    if ((ChannelOutputSelect & 0x01) == 0x01)
+                        output |= SoundOutputTerminal.Right;
+                    break;
+
                 case Channels.Channel2:
-                    return SoundOutputTerminal.Left;
+                    if ((ChannelOutputSelect & 0x20) == 0x20)
+                        output |= SoundOutputTerminal.Left;
+                    if ((ChannelOutputSelect & 0x02) == 0x02)
+                        output |= SoundOutputTerminal.Right;
+                    break;
+
                 case Channels.Channel3:
-                    return SoundOutputTerminal.Left;
+                    if ((ChannelOutputSelect & 0x40) == 0x40)
+                        output |= SoundOutputTerminal.Left;
+                    if ((ChannelOutputSelect & 0x04) == 0x04)
+                        output |= SoundOutputTerminal.Right;
+                    break;
+
                 case Channels.Channel4:
-                    return SoundOutputTerminal.Left;
+                    if ((ChannelOutputSelect & 0x80) == 0x80)
+                        output |= SoundOutputTerminal.Left;
+                    if ((ChannelOutputSelect & 0x08) == 0x08)
+                        output |= SoundOutputTerminal.Right;
+                    break;
+
                 default:
                     throw new InvalidOperationException("Invalid sound channel specified");
             }
+
+            return output;
+        }
+
+        public event EventHandler OutputTerminalChangedEvent;
+
+        private void NotifyOutputTerminalChanged()
+        {
+            OutputTerminalChangedEvent?.Invoke(this, null);
         }
 
         public void AdvanceMachineCycle()

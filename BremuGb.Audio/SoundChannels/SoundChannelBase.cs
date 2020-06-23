@@ -17,5 +17,7 @@
         }
 
         public abstract byte GetSample();
+        public abstract bool IsEnabled();
+        public abstract void Disable();
     }
 }

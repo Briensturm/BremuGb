@@ -146,9 +146,8 @@ namespace BremuGb.Audio.SoundChannels
         }
 
         public override byte GetSample()
-        {
-            //length enable and DAC power
-            if(_lengthCounter == 0 || (Envelope & 0xF8) == 0)            
+        {            
+            if(!IsEnabled())            
                 return 0;
 
             int output;
@@ -171,6 +170,24 @@ namespace BremuGb.Audio.SoundChannels
             }
 
             return (byte)(output * _currentVolume *17);
+        }
+
+        public override bool IsEnabled()
+        {
+            //length enable and DAC power
+            return _lengthCounter != 0 && (Envelope & 0xF8) != 0;
+        }
+
+        public override void Disable()
+        {
+            _lengthCounter = 0;
+            _envelopeTimer = 0;
+            _timer = 0;
+
+            Envelope = 0;
+            DutyLength = 0;
+            FrequencyHi = 0;
+            FrequencyLo = 0;
         }
     }
 }

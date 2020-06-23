@@ -9,5 +9,8 @@
         byte GetSample();
 
         void AdvanceMachineCycle();
+        bool IsEnabled();
+
+        void Disable();
     }
 }

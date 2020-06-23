@@ -17,6 +17,9 @@ namespace BremuGb.Cartridge.MemoryBankController
                 case 0x02:
                 case 0x03:
                     return new MBC1(romData);
+                case 0x05:
+                case 0x06:
+                    return new MBC2(romData);
                 case 0x1B:
                     return new MBC5(romData);
                 default:
