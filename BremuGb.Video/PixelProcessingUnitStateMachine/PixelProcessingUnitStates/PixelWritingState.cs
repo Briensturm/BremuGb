@@ -31,7 +31,7 @@ namespace BremuGb.Video
                 var scrollX = _context.ScrollX;
                 var scrollY = _context.ScrollY;
 
-                var windowX = _context.WindowX-6;
+                var windowX = _context.WindowX-7;
                 var windowY = _context.WindowY;
 
                 foreach (Sprite sprite in _context.SpriteTable.Sprites)
