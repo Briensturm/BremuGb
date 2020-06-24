@@ -17,8 +17,8 @@ namespace BremuGb.Frontend.OpenAL
 
 		private int _source;
 
-		private int _bufferSize = 4410;
-		private int _sampleRate = 41000;
+		private int _bufferSize = 4410*2;
+		private int _sampleRate = 41943;
 
 		internal BufferedAudioSource()
 		{
