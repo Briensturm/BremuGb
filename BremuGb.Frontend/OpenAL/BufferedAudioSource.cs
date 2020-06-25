@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using BremuGb.Audio;
+
 using OpenToolkit.Audio.OpenAL;
-using OpenToolkit.Mathematics;
+
+using BremuGb.Audio;
 
 namespace BremuGb.Frontend.OpenAL
 {
@@ -76,7 +77,7 @@ namespace BremuGb.Frontend.OpenAL
 			}
 
 			if(_sampleList.Count < _bufferSize)
-			_sampleList.Add(sample);
+				_sampleList.Add(sample);
 
 			if (_sampleList.Count >= _bufferSize)
 			{

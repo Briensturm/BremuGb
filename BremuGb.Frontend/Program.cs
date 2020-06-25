@@ -6,7 +6,7 @@ namespace BremuGb.Frontend
     class Program
     {
         static void Main()
-        {
+        {            
             RunWithGui();
         }
 
@@ -25,7 +25,7 @@ namespace BremuGb.Frontend
                 UpdateFrequency = 0
             };
            
-            using var window = new Window(nativeWindowSettings, gameWindowSettings, new GameBoy("gold.gbc"));
+            using var window = new Window(nativeWindowSettings, gameWindowSettings, new GameBoy("rom.gb"));
             window.Run();
         }
     }

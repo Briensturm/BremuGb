@@ -12,6 +12,8 @@
         private int _frequency;
         private int _lengthCounter;
 
+        private bool _isEnabled;
+
         public byte[] WaveTable { get; }
         public byte OnOff 
         { 
@@ -23,6 +25,9 @@
             internal set
             {
                 _dacOn = (value & 0x80) == 0x80;
+
+                if (IsDacDisabled())
+                    _isEnabled = false;
             }
         }
         public byte OutputLevel 
@@ -85,17 +90,8 @@
 
                 _compareLength = (value & 0x40) == 0x40;
 
-                //handle trigger
                 if ((value & 0x80) == 0x80)
-                {
-                    _timer = (2048 - _frequency)*2;
-
-                    if (_lengthCounter == 0)
-                        _lengthCounter = 256;
-
-                    //set wave index to 0 but do not reload buffer
-                    _waveIndex = 0;
-                }
+                    Trigger();
             }
         }
         public byte FrequencyLo
@@ -118,7 +114,7 @@
 
             internal set
             {
-                _lengthCounter = value;
+                _lengthCounter = 256 - value;
             }
         }
 
@@ -158,7 +154,12 @@
         public override void ClockLength()
         {
             if (_compareLength && _lengthCounter > 0)
+            {
                 _lengthCounter--;
+
+                if (_lengthCounter == 0)
+                    _isEnabled = false;
+            }
         }
 
         public override byte GetSample()
@@ -172,20 +173,41 @@
 
         public override bool IsEnabled()
         {
-            //length enable and DAC power
-            return _lengthCounter != 0 && _dacOn;
+            return _isEnabled;
         }
 
         public override void Disable()
         {
             _lengthCounter = 0;
             _timer = 0;
+            _isEnabled = false;
 
             OnOff = 0;
             OutputLevel = 0;
             FrequencyHi = 0;
             FrequencyLo = 0;
             SoundLength = 0;
+        }
+
+        private void Trigger()
+        {
+            _isEnabled = true;
+
+            _timer = (2048 - _frequency) * 2;
+
+            if (_lengthCounter == 0)
+                _lengthCounter = 256;
+
+            //set wave index to 0 but do not reload buffer
+            _waveIndex = 0;
+
+            if (IsDacDisabled())
+                _isEnabled = false;
+        }
+
+        private bool IsDacDisabled()
+        {
+            return !_dacOn;
         }
     }
 }

@@ -1,33 +1,28 @@
-﻿namespace BremuGb.Audio.SoundChannels
+﻿using System;
+
+namespace BremuGb.Audio.SoundChannels
 {
     internal class NoiseChannel : SoundChannelBase
     {
         private int _timer = 0;
-
         private int _lengthCounter;
-
         private bool _compareLength;
-
-        private int _envelopeTimer = 0;
-
-        private int _initialVolume = 0;
-
-        private int _currentVolume = 0;
-
-        private bool _envelopeIncrease = false;
-
-        private int _envelopePeriod = 0;
-
-        private int _shiftClockFreq = 0;
+        private int _envelopeTimer;
+        private int _initialVolume;
+        private int _currentVolume;
+        private bool _envelopeIncrease;
+        private int _envelopePeriod;
+        private int _shiftClockFreq;
         private bool _widthMode;
         private int _dividingRatio;
-
         private ushort _lfsr;
         private int[] _divisorLookup;
 
+        private bool _isEnabled;
+
         public NoiseChannel()
         {
-            _divisorLookup = new int[8] { 8, 16, 32, 48, 64, 80, 96, 112 };
+            _divisorLookup = new int[8] { 1, 2, 4, 6, 8, 10, 12, 14 };
         }
 
         public byte Envelope
@@ -43,6 +38,9 @@
                 _initialVolume = (value & 0xF0) >> 4;
                 _envelopeIncrease = (value & 0x8) == 0x8;
                 _envelopePeriod = value & 0x7;
+
+                if (IsDacDisabled())
+                    _isEnabled = false;
             }
         }
 
@@ -61,19 +59,7 @@
                 _compareLength = (value & 0x40) == 0x40;
 
                 if((value & 0x80) == 0x80)
-                {
-                    //handle trigger
-                    _timer = _divisorLookup[_dividingRatio] << _shiftClockFreq;
-
-                    _lfsr = 0x7FFF;
-
-                    if (_lengthCounter == 0)
-                        _lengthCounter = 64;
-
-                    _currentVolume = _initialVolume;
-
-                    _envelopeTimer = _envelopePeriod;
-                }
+                    Trigger();
             }
         }
 
@@ -103,7 +89,7 @@
 
             internal set
             {
-                _lengthCounter = value & 0x3F;
+                _lengthCounter = 64 - (value & 0x3F);
             }
         }
 
@@ -116,8 +102,15 @@
 
             if (_timer == 0)
             {
+                //reload timer
+                ReloadTimer();
+
+                //obscure behavior where lfsr receives no clock
+                if (_shiftClockFreq == 14 || _shiftClockFreq == 15)
+                    return;
+
                 //advance LFSR
-                var newBit = (_lfsr & 0x1) ^ (_lfsr & 0x2);
+                var newBit = (_lfsr & 0x1) ^ ((_lfsr & 0x2) >> 1);
                 _lfsr = (ushort)(_lfsr >> 1);
 
                 if(newBit == 1)
@@ -128,13 +121,10 @@
                 }
                 else
                 {
-                    _lfsr = (byte)(_lfsr & 0x3FFF);
+                    _lfsr = (ushort)(_lfsr & 0x3FFF);
                     if (_widthMode)
                         _lfsr = (ushort)(_lfsr & 0x7FBF);
-                }
-
-                //reload timer
-                _timer = _divisorLookup[_dividingRatio] << _shiftClockFreq;
+                }                
             }
         }
 
@@ -151,14 +141,19 @@
                 else if (!_envelopeIncrease && _currentVolume > 0)
                     _currentVolume--;
 
-                _envelopeTimer = _envelopePeriod;
+                ReloadEnvelopeTimer();
             }
         }
 
         public override void ClockLength()
         {
             if (_compareLength && _lengthCounter > 0)
+            {
                 _lengthCounter--;
+
+                if (_lengthCounter == 0)
+                    _isEnabled = false;
+            }
         }
 
         public override byte GetSample()
@@ -167,12 +162,12 @@
                 return 0;
 
             //get output from LFSR
-            return (byte)((_lfsr & 0x1) * _currentVolume * 17);
+            return (byte)(((_lfsr & 0x1) ^ 1) * _currentVolume * 17);
         }
 
         public override bool IsEnabled()
         {
-            return _lengthCounter != 0 && (Envelope & 0xF8) != 0;
+            return _isEnabled;
         }
 
         public override void Disable()
@@ -180,11 +175,49 @@
             _lengthCounter = 0;
             _envelopeTimer = 0;
             _timer = 0;
+            _isEnabled = false;
 
             Envelope = 0;
             InitConsecutive = 0;
             PolynomialCounter = 0;
             SoundLength = 0;
+        }
+
+        private void ReloadTimer()
+        {
+            _timer = _divisorLookup[_dividingRatio] << (_shiftClockFreq + 1);
+        }
+
+        private void ReloadEnvelopeTimer()
+        {
+            if (_envelopePeriod == 0)
+                _envelopeTimer = 8;
+            else
+                _envelopeTimer = _envelopePeriod;
+        }
+
+        private void Trigger()
+        {
+            _isEnabled = true;
+
+            ReloadTimer();
+
+            _lfsr = 0x7FFF;
+
+            if (_lengthCounter == 0)
+                _lengthCounter = 64;
+
+            _currentVolume = _initialVolume;
+
+            ReloadEnvelopeTimer();
+
+            if (IsDacDisabled())
+                _isEnabled = false;
+        }
+
+        private bool IsDacDisabled()
+        {
+            return _initialVolume == 0 && !_envelopeIncrease;
         }
     }
 }

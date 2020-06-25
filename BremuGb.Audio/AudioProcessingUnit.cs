@@ -34,7 +34,7 @@ namespace BremuGb.Audio
             _soundChannels[3] = _noiseChannel;
 
             ChannelOutputSelect = 0xF3;
-            SoundOnOff = 0x77;
+            SoundOnOff = 0xF0;
         }
 
         private int _frameSequencerTimer = 0;
@@ -61,8 +61,8 @@ namespace BremuGb.Audio
             {
                 return (byte)(_lastOnOffValue << 7 |
                                 0x70 |
-                                (_waveChannel.IsEnabled() ? 0x08 : 0x00) |
-                                (_noiseChannel.IsEnabled() ? 0x04 : 0x00) |
+                                (_noiseChannel.IsEnabled() ? 0x08 : 0x00) |
+                                (_waveChannel.IsEnabled() ? 0x04 : 0x00) |
                                 (_squareWaveChannel.IsEnabled() ? 0x02 : 0x00) |
                                 (_squareWaveSweepChannel.IsEnabled() ? 0x01 : 0x00));
             }
@@ -77,11 +77,14 @@ namespace BremuGb.Audio
 
                     foreach (var soundChannel in _soundChannels)
                         soundChannel.Disable();
+
+                    ChannelOutputSelect = 0;
+                    MasterVolume = 0;
                 }                    
             }
         }
 
-        private int _lastOnOffValue;
+        private int _lastOnOffValue = 1;
 
         public byte GetCurrentSample(Channels soundChannel)
         {
@@ -197,17 +200,29 @@ namespace BremuGb.Audio
 
         public void DelegateMemoryWrite(ushort address, byte data)
         {
-            switch(address)
+            if (address >= 0xFF30 && address <= 0xFF3F)
+            {
+                _waveChannel.WaveTable[address - 0xFF30] = data;
+                return;
+            }
+
+            if (address == AudioRegisters.SoundOnOff)
+            {
+                SoundOnOff = data;
+                return;
+            }
+
+            if (_lastOnOffValue == 0)
+                return;
+
+            switch (address)
             {
                 case AudioRegisters.ChannelOutputSelect:
                     ChannelOutputSelect = data;
                     break;
                 case AudioRegisters.MasterVolume:
                     MasterVolume = data;
-                    break;
-                case AudioRegisters.SoundOnOff:
-                    SoundOnOff = data;
-                    break;
+                    break;                
                 case AudioRegisters.Channel1.DutyLength:
                     _squareWaveSweepChannel.DutyLength = data;
                     break;
@@ -262,10 +277,7 @@ namespace BremuGb.Audio
                 case AudioRegisters.Channel4.SoundLength:
                     _noiseChannel.SoundLength = data;
                     break;
-            }
-
-            if (address >= 0xFF30 && address <= 0xFF3F)
-                _waveChannel.WaveTable[address - 0xFF30] = data;
+            }            
         }
 
         public IEnumerable<ushort> GetDelegatedAddresses()

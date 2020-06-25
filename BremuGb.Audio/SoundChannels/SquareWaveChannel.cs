@@ -16,6 +16,7 @@ namespace BremuGb.Audio.SoundChannels
 
         private bool _compareLength = false;
         private bool _envelopeIncrease = false;
+        private bool _isEnabled;
 
         private int _envelopePeriod = 0;
 
@@ -44,7 +45,7 @@ namespace BremuGb.Audio.SoundChannels
             internal set
             {
                 _dutyPatternSelect = (value & 0xC0) >> 6;
-                _lengthCounter = value & 0x3F;
+                _lengthCounter = 64 - (value & 0x3F);
             }
         }
         
@@ -61,6 +62,9 @@ namespace BremuGb.Audio.SoundChannels
                 _initialVolume = (value & 0xF0) >> 4;
                 _envelopeIncrease = (value & 0x8) == 0x8;
                 _envelopePeriod = value & 0x7;
+
+                if (IsDacDisabled())
+                    _isEnabled = false;
             }
         }
         
@@ -77,18 +81,8 @@ namespace BremuGb.Audio.SoundChannels
 
                 _compareLength = (value & 0x40) == 0x40;
 
-                //handle trigger
                 if ((value & 0x80) == 0x80)
-                {
-                    _timer = 2048 - _frequency;
-
-                    if (_lengthCounter == 0)
-                        _lengthCounter = 64;
-
-                    _currentVolume = _initialVolume;
-
-                    _envelopeTimer = _envelopePeriod;
-                }
+                    Trigger();
             }
         }
 
@@ -141,8 +135,13 @@ namespace BremuGb.Audio.SoundChannels
 
         public override void ClockLength()
         {
-            if(_compareLength && _lengthCounter > 0)
+            if (_compareLength && _lengthCounter > 0)
+            {
                 _lengthCounter--;
+
+                if (_lengthCounter == 0)
+                    _isEnabled = false;
+            }            
         }
 
         public override byte GetSample()
@@ -174,8 +173,7 @@ namespace BremuGb.Audio.SoundChannels
 
         public override bool IsEnabled()
         {
-            //length enable and DAC power
-            return _lengthCounter != 0 && (Envelope & 0xF8) != 0;
+            return _isEnabled;
         }
 
         public override void Disable()
@@ -183,11 +181,36 @@ namespace BremuGb.Audio.SoundChannels
             _lengthCounter = 0;
             _envelopeTimer = 0;
             _timer = 0;
+            _isEnabled = false;
 
             Envelope = 0;
             DutyLength = 0;
             FrequencyHi = 0;
             FrequencyLo = 0;
+        }
+
+        private void Trigger()
+        {
+            _isEnabled = true;
+
+            //obscure behavior: update timer except two lower bits
+            _timer = (2048 - _frequency) & 0xFFFC;
+
+            if (_lengthCounter == 0)
+                _lengthCounter = 64;
+
+            _currentVolume = _initialVolume;
+
+            _envelopeTimer = _envelopePeriod;
+
+            //if dac is off, disable channel
+            if (IsDacDisabled())
+                _isEnabled = false;
+        }
+
+        private bool IsDacDisabled()
+        {
+            return _initialVolume == 0 && !_envelopeIncrease;
         }
     }
 }
