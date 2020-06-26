@@ -83,7 +83,7 @@ namespace BremuGb.Frontend.OpenAL
 			{
 				if (_initialList.Count > 0)
 				{
-					Console.WriteLine("Start streaming audio...");
+					//Console.WriteLine("Start streaming audio...");
 					AL.BufferData(_sampleBuffer0, ALFormat.Mono8, _initialList.ToArray(), _initialList.Count, _sampleRate);
 					AL.BufferData(_sampleBuffer1, ALFormat.Mono8, _sampleList.ToArray(), _sampleList.Count, _sampleRate);
 					AL.SourceQueueBuffer(_source, _sampleBuffer0);
@@ -121,7 +121,7 @@ namespace BremuGb.Frontend.OpenAL
 				var sourceState = AL.GetSourceState(_source);
 				if (sourceState.HasFlag(ALSourceState.Initial) || sourceState.HasFlag(ALSourceState.Stopped))
 				{
-					Console.WriteLine("Audio buffer underflow occured, resuming play...");
+					//Console.WriteLine("Audio buffer underflow occured, resuming play...");
 					AL.SourcePlay(_source);
 					ThrowIfOpenAlError();
 				}

@@ -2,6 +2,7 @@
 {
     internal interface ISoundChannel
     {
+        void PrepareClockLength();
         void ClockLength();
         void ClockEnvelope();
         void ClockSweep();
@@ -12,5 +13,7 @@
         bool IsEnabled();
 
         void Disable();
+
+        void SetLengthCounter(int length);
     }
 }

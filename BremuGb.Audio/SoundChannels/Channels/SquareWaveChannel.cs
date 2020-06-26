@@ -5,19 +5,14 @@ namespace BremuGb.Audio.SoundChannels
     internal class SquareWaveChannel : SoundChannelBase
     {
         private int _timer = 0;
-        private int _frequency = 0;
+        protected int _frequency = 0;
 
         private int _envelopeTimer = 0;
 
         private int _initialVolume = 0;
         private int _currentVolume = 0;
 
-        private int _lengthCounter = 0;
-
-        private bool _compareLength = false;
         private bool _envelopeIncrease = false;
-        private bool _isEnabled;
-
         private int _envelopePeriod = 0;
 
         private int _dutyPatternSelect = 0;
@@ -27,6 +22,8 @@ namespace BremuGb.Audio.SoundChannels
         private byte[] _dutyPattern1;
         private byte[] _dutyPattern2;
         private byte[] _dutyPattern3;
+
+        protected override int ChannelMaxLength => 64;
 
         internal SquareWaveChannel()
         {
@@ -45,7 +42,7 @@ namespace BremuGb.Audio.SoundChannels
             internal set
             {
                 _dutyPatternSelect = (value & 0xC0) >> 6;
-                _lengthCounter = 64 - (value & 0x3F);
+                _lengthCounter = ChannelMaxLength - (value & 0x3F);
             }
         }
         
@@ -68,7 +65,7 @@ namespace BremuGb.Audio.SoundChannels
             }
         }
         
-        public byte FrequencyHi
+        public virtual byte FrequencyHi
         {
             get
             {
@@ -79,7 +76,18 @@ namespace BremuGb.Audio.SoundChannels
             {
                 _frequency = (_frequency & 0xFF) | ((value & 0x7) << 8);
 
+                var oldCompareLength = _compareLength;
                 _compareLength = (value & 0x40) == 0x40;
+
+                //obscure behavior
+                if(!oldCompareLength && _compareLength && !_prepareClockLength && _lengthCounter > 0)
+                {
+                    _lengthCounter--;
+
+                    //if decremented to zero and no trigger, disable channel
+                    if (_lengthCounter == 0 && ((value & 0x80) == 0))
+                        _isEnabled = false;
+                }
 
                 if ((value & 0x80) == 0x80)
                     Trigger();
@@ -133,17 +141,6 @@ namespace BremuGb.Audio.SoundChannels
             }            
         }
 
-        public override void ClockLength()
-        {
-            if (_compareLength && _lengthCounter > 0)
-            {
-                _lengthCounter--;
-
-                if (_lengthCounter == 0)
-                    _isEnabled = false;
-            }            
-        }
-
         public override byte GetSample()
         {            
             if(!IsEnabled())            
@@ -178,15 +175,16 @@ namespace BremuGb.Audio.SoundChannels
 
         public override void Disable()
         {
-            _lengthCounter = 0;
             _envelopeTimer = 0;
             _timer = 0;
             _isEnabled = false;
 
             Envelope = 0;
-            DutyLength = 0;
+            _dutyPatternSelect = 0;
             FrequencyHi = 0;
             FrequencyLo = 0;
+
+            base.Disable();
         }
 
         private void Trigger()
@@ -196,8 +194,7 @@ namespace BremuGb.Audio.SoundChannels
             //obscure behavior: update timer except two lower bits
             _timer = (2048 - _frequency) & 0xFFFC;
 
-            if (_lengthCounter == 0)
-                _lengthCounter = 64;
+            ReloadLengthCounter();
 
             _currentVolume = _initialVolume;
 

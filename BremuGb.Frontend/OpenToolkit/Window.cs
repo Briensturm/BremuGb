@@ -21,7 +21,14 @@ namespace BremuGb.Frontend
         private readonly GameBoy _gameBoy;
 
         private byte[] _previousScreenReference;
-        int _audioCounter = 0;
+        private int _audioCounter = 0;
+
+        private int _channel1SampleBuffer;
+        private int _channel2SampleBuffer;
+        private int _channel3SampleBuffer;
+        private int _channel4SampleBuffer;
+
+        private bool _averageAudioSamples = true;
 
         public Window(NativeWindowSettings nativeWindowSettings, GameWindowSettings gameWindowSettings, GameBoy gameBoy)
             : base(gameWindowSettings, nativeWindowSettings)
@@ -107,14 +114,34 @@ namespace BremuGb.Frontend
             {
                 _gameBoy.AdvanceMachineCycle(joypadState);
 
+                _channel1SampleBuffer += _gameBoy.GetAudioSample(Channels.Channel1);
+                _channel2SampleBuffer += _gameBoy.GetAudioSample(Channels.Channel2);
+                _channel3SampleBuffer += _gameBoy.GetAudioSample(Channels.Channel3);
+                _channel4SampleBuffer += _gameBoy.GetAudioSample(Channels.Channel4);
+
                 _audioCounter++;
                 if (_audioCounter == 25)
                 {
+                    if (_averageAudioSamples)
+                    {
+                        _soundPlayer.QueueAudioSample(Channels.Channel1, (byte)(_channel1SampleBuffer / _audioCounter));
+                        _soundPlayer.QueueAudioSample(Channels.Channel2, (byte)(_channel2SampleBuffer / _audioCounter));
+                        _soundPlayer.QueueAudioSample(Channels.Channel3, (byte)(_channel3SampleBuffer / _audioCounter));
+                        _soundPlayer.QueueAudioSample(Channels.Channel4, (byte)(_channel4SampleBuffer / _audioCounter));
+                    }
+                    else
+                    {
+                        _soundPlayer.QueueAudioSample(Channels.Channel1, _gameBoy.GetAudioSample(Channels.Channel1));
+                        _soundPlayer.QueueAudioSample(Channels.Channel2, _gameBoy.GetAudioSample(Channels.Channel2));
+                        _soundPlayer.QueueAudioSample(Channels.Channel3, _gameBoy.GetAudioSample(Channels.Channel3));
+                        _soundPlayer.QueueAudioSample(Channels.Channel4, _gameBoy.GetAudioSample(Channels.Channel4));
+                    }
+
                     _audioCounter = 0;
-                    _soundPlayer.QueueAudioSample(Channels.Channel1, _gameBoy.GetAudioSample(Channels.Channel1));
-                    _soundPlayer.QueueAudioSample(Channels.Channel2, _gameBoy.GetAudioSample(Channels.Channel2));
-                    _soundPlayer.QueueAudioSample(Channels.Channel3, _gameBoy.GetAudioSample(Channels.Channel3));
-                    _soundPlayer.QueueAudioSample(Channels.Channel4, _gameBoy.GetAudioSample(Channels.Channel4));
+                    _channel1SampleBuffer = 0;
+                    _channel2SampleBuffer = 0;
+                    _channel3SampleBuffer = 0;
+                    _channel4SampleBuffer = 0;
                 }
             }            
 

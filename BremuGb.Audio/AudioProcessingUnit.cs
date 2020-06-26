@@ -18,9 +18,12 @@ namespace BremuGb.Audio
 
         private FrameSequencer _frameSequencer;
 
+        private List<ushort> _unusedAudioAddresses;
+
         public AudioProcessingUnit()
         {
             _frameSequencer = new FrameSequencer();
+            _frameSequencer.ResetAndEnable();
 
             _squareWaveSweepChannel = new SquareWaveSweepChannel();
             _squareWaveChannel = new SquareWaveChannel();
@@ -70,16 +73,23 @@ namespace BremuGb.Audio
             private set
             {
                 if ((value & 0x80) == 0x80)
+                {
+                    if (_lastOnOffValue == 0)
+                        _frameSequencer.ResetAndEnable();
+
                     _lastOnOffValue = 1;
+                }
                 else
                 {
-                    _lastOnOffValue = 0;
+                    _frameSequencer.Disable();                    
 
                     foreach (var soundChannel in _soundChannels)
                         soundChannel.Disable();
 
                     ChannelOutputSelect = 0;
                     MasterVolume = 0;
+
+                    _lastOnOffValue = 0;
                 }                    
             }
         }
@@ -153,6 +163,8 @@ namespace BremuGb.Audio
 
         public void AdvanceMachineCycle()
         {
+            _waveChannel.AccessingWaveRam = false;
+
             _frameSequencerTimer++;
             if(_frameSequencerTimer == 2048)
             {
@@ -169,7 +181,10 @@ namespace BremuGb.Audio
         public byte DelegateMemoryRead(ushort address)
         {
             if (address >= 0xFF30 && address <= 0xFF3F)
-                return _waveChannel.WaveTable[address - 0xFF30];
+                return _waveChannel.ReadWaveRam(address);
+
+            if (_unusedAudioAddresses.Contains(address))
+                return 0xFF;
 
             return address switch
             {
@@ -202,7 +217,7 @@ namespace BremuGb.Audio
         {
             if (address >= 0xFF30 && address <= 0xFF3F)
             {
-                _waveChannel.WaveTable[address - 0xFF30] = data;
+                _waveChannel.WriteWaveRam(address, data);
                 return;
             }
 
@@ -213,7 +228,26 @@ namespace BremuGb.Audio
             }
 
             if (_lastOnOffValue == 0)
+            {
+                //on DMG, length counters can still be written when APU is off
+                switch(address)
+                {
+                    case AudioRegisters.Channel1.DutyLength:
+                        _squareWaveSweepChannel.SetLengthCounter(data & 0x3F);
+                        break;
+                    case AudioRegisters.Channel2.DutyLength:
+                        _squareWaveChannel.SetLengthCounter(data & 0x3F);
+                        break;
+                    case AudioRegisters.Channel3.SoundLength:
+                        _waveChannel.SetLengthCounter(data);
+                        break;
+                    case AudioRegisters.Channel4.SoundLength:
+                        _noiseChannel.SetLengthCounter(data & 0x3F);
+                        break;
+                }
+
                 return;
+            }
 
             switch (address)
             {
@@ -309,9 +343,17 @@ namespace BremuGb.Audio
             var waveRamAddresses = new ushort[0x10];
             for (int i = 0; i < waveRamAddresses.Length; i++)
                 waveRamAddresses[i] = (ushort)(i + 0xFF30);
+
+            //these unused audio addresses always return 0xFF on read and ignore writes
+            _unusedAudioAddresses = new List<ushort>();
+            _unusedAudioAddresses.Add(0xFF15);
+            _unusedAudioAddresses.Add(0xFF1F);
+            for (ushort i = 0xFF27; i <= 0xFF2F; i++)
+                _unusedAudioAddresses.Add(i);
             
             addressList.AddRange(audioRegisterAddresses);
             addressList.AddRange(waveRamAddresses);
+            addressList.AddRange(_unusedAudioAddresses);
 
             return addressList;
         }

@@ -51,7 +51,15 @@ namespace BremuGb.Cartridge.MemoryBankController
                 if (data == 0)
                     _romBankLower = 0x01;
                 else
-                    _romBankLower = (byte)(data & 0x1F);
+                {
+                    //TODO: Check number of banks and cut other bits off?
+
+                    if(_romSize == 0x01)
+                        _romBankLower = (byte)(data & 0x03);
+
+                    else
+                        _romBankLower = (byte)(data & 0x1F);
+                }
             }
 
             else if (address >= 0x4000 && address <= 0x5FFF)

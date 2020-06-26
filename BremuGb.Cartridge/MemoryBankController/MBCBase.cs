@@ -9,7 +9,9 @@ namespace BremuGb.Cartridge.MemoryBankController
     abstract class MBCBase : IMemoryBankController, IMemoryAccessDelegate
     {
         protected byte[] _romData;
+
         protected byte _cartridgeType;
+        protected byte _romSize;
 
         public MBCBase(byte[] romData)
         {
@@ -20,16 +22,17 @@ namespace BremuGb.Cartridge.MemoryBankController
                 throw new NotSupportedException("CGB-only games are not supported"); 
             
             _cartridgeType = romData[0x0147];
+            _romSize = _romData[0x0148];
         }
 
         virtual public void LoadRam(IRamManager ramManager)
         {
-            //mbc types which have battery backup must override this
+            //mbc-cartridgetype combinations which have battery backed up ram must override this
         }
 
         virtual public void SaveRam(IRamManager ramManager)
         {
-            //mbc types which have battery backup must override this
+            //mbc-cartridgetype combinations which have battery backed up rum must override this
         }
 
         abstract public byte DelegateMemoryRead(ushort address);

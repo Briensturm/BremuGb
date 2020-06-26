@@ -2,15 +2,15 @@
 
 namespace BremuGb.Audio
 {
-    class FrameSequencer
+    internal class FrameSequencer
     {
-        private int _timer = 0;
+        private int _timer;
+        private bool _isEnabled;
 
-        public void AdvanceClock(IEnumerable<ISoundChannel> soundChannels)
+        internal void AdvanceClock(IEnumerable<ISoundChannel> soundChannels)
         {
-            _timer++;
-            if (_timer == 8)
-                _timer = 0;
+            if (!_isEnabled)
+                return;            
 
             var clockLength = _timer % 2 == 0;
             var clockEnvelope = _timer == 7;
@@ -18,8 +18,10 @@ namespace BremuGb.Audio
 
             foreach(var soundChannel in soundChannels)
             {
-                if(clockLength)
+                if (clockLength)
                     soundChannel.ClockLength();
+                else
+                    soundChannel.PrepareClockLength();
 
                 if (clockEnvelope)
                     soundChannel.ClockEnvelope();
@@ -27,6 +29,21 @@ namespace BremuGb.Audio
                 if (clockSweep)
                     soundChannel.ClockSweep();
             }
+
+            _timer++;
+            if (_timer == 8)
+                _timer = 0;
+        }
+
+        internal void Disable()
+        {
+            _isEnabled = false;
+        }
+
+        internal void ResetAndEnable()
+        {
+            _isEnabled = true;
+            _timer = 0;
         }
     }
 }

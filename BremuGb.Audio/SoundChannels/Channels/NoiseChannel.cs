@@ -5,8 +5,6 @@ namespace BremuGb.Audio.SoundChannels
     internal class NoiseChannel : SoundChannelBase
     {
         private int _timer = 0;
-        private int _lengthCounter;
-        private bool _compareLength;
         private int _envelopeTimer;
         private int _initialVolume;
         private int _currentVolume;
@@ -18,7 +16,9 @@ namespace BremuGb.Audio.SoundChannels
         private ushort _lfsr;
         private int[] _divisorLookup;
 
-        private bool _isEnabled;
+        private bool _envelopeEnable;
+
+        protected override int ChannelMaxLength => 64;
 
         public NoiseChannel()
         {
@@ -40,7 +40,10 @@ namespace BremuGb.Audio.SoundChannels
                 _envelopePeriod = value & 0x7;
 
                 if (IsDacDisabled())
+                {
                     _isEnabled = false;
+                    _envelopeEnable = false;
+                }
             }
         }
 
@@ -56,7 +59,18 @@ namespace BremuGb.Audio.SoundChannels
 
             internal set
             {
+                var oldCompareLength = _compareLength;
                 _compareLength = (value & 0x40) == 0x40;
+
+                //obscure behavior
+                if(!oldCompareLength && _compareLength && !_prepareClockLength && _lengthCounter > 0)
+                {
+                    _lengthCounter--;
+
+                    //if decremented to zero and no trigger, disable channel
+                    if (_lengthCounter == 0 && ((value & 0x80) == 0))
+                        _isEnabled = false;
+                }
 
                 if((value & 0x80) == 0x80)
                     Trigger();
@@ -89,7 +103,7 @@ namespace BremuGb.Audio.SoundChannels
 
             internal set
             {
-                _lengthCounter = 64 - (value & 0x3F);
+                _lengthCounter = ChannelMaxLength - (value & 0x3F);
             }
         }
 
@@ -130,30 +144,25 @@ namespace BremuGb.Audio.SoundChannels
 
         public override void ClockEnvelope()
         {
-            if (_envelopeTimer == 0 || _envelopePeriod == 0)
-                return;
-            _envelopeTimer--;
+            if (_envelopeTimer > 0)
+                _envelopeTimer--;
 
-            if (_envelopeTimer == 0)
+            if(_envelopeTimer == 0)
             {
+                ReloadEnvelopeTimer();
+
+                if (!_envelopeEnable || _envelopePeriod == 0)
+                    return;
+
                 if (_envelopeIncrease && _currentVolume < 0xF)
                     _currentVolume++;
                 else if (!_envelopeIncrease && _currentVolume > 0)
                     _currentVolume--;
+                else if ((_envelopeIncrease && _currentVolume == 0xF) || (!_envelopeIncrease && _currentVolume == 0))
+                    _envelopeEnable = false;
 
-                ReloadEnvelopeTimer();
-            }
-        }
-
-        public override void ClockLength()
-        {
-            if (_compareLength && _lengthCounter > 0)
-            {
-                _lengthCounter--;
-
-                if (_lengthCounter == 0)
-                    _isEnabled = false;
-            }
+                //TODO: When else to disable _envelopeEnable?
+            }            
         }
 
         public override byte GetSample()
@@ -172,15 +181,16 @@ namespace BremuGb.Audio.SoundChannels
 
         public override void Disable()
         {
-            _lengthCounter = 0;
             _envelopeTimer = 0;
             _timer = 0;
             _isEnabled = false;
+            _envelopeEnable = false;
 
             Envelope = 0;
             InitConsecutive = 0;
             PolynomialCounter = 0;
-            SoundLength = 0;
+
+            base.Disable();
         }
 
         private void ReloadTimer()
@@ -190,6 +200,7 @@ namespace BremuGb.Audio.SoundChannels
 
         private void ReloadEnvelopeTimer()
         {
+            //TODO: Fix envelope also for other channels
             if (_envelopePeriod == 0)
                 _envelopeTimer = 8;
             else
@@ -199,20 +210,23 @@ namespace BremuGb.Audio.SoundChannels
         private void Trigger()
         {
             _isEnabled = true;
+            _envelopeEnable = true;
 
             ReloadTimer();
 
             _lfsr = 0x7FFF;
 
-            if (_lengthCounter == 0)
-                _lengthCounter = 64;
+            ReloadLengthCounter();
 
             _currentVolume = _initialVolume;
 
             ReloadEnvelopeTimer();
 
             if (IsDacDisabled())
+            {
                 _isEnabled = false;
+                _envelopeEnable = false;
+            }
         }
 
         private bool IsDacDisabled()

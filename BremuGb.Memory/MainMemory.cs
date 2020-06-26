@@ -14,6 +14,7 @@ namespace BremuGb.Memory
         private byte _interruptFlags;
         private byte _interruptEnable;
 
+        //for CGB/DMG distinction
         private readonly byte _key1 = 0xFF;
 
         private byte InterruptFlags

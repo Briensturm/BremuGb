@@ -7,14 +7,12 @@
 
         private bool _dacOn;
 
-        private bool _compareLength;
-
         private int _frequency;
-        private int _lengthCounter;
 
-        private bool _isEnabled;
+        private bool _useLowNibble;
 
-        public byte[] WaveTable { get; }
+        internal bool AccessingWaveRam { get; set; }
+
         public byte OnOff 
         { 
             get
@@ -88,7 +86,18 @@
             {
                 _frequency = (_frequency & 0xFF) | ((value & 0x7) << 8);
 
+                var oldCompareLength = _compareLength;
                 _compareLength = (value & 0x40) == 0x40;
+
+                //obscure behavior
+                if (!oldCompareLength && _compareLength && !_prepareClockLength && _lengthCounter > 0)
+                {
+                    _lengthCounter--;
+
+                    //if decremented to zero and no trigger, disable channel
+                    if (_lengthCounter == 0 && ((value & 0x80) == 0))
+                        _isEnabled = false;
+                }
 
                 if ((value & 0x80) == 0x80)
                     Trigger();
@@ -114,19 +123,39 @@
 
             internal set
             {
-                _lengthCounter = 256 - value;
+                _lengthCounter = ChannelMaxLength - value;
             }
         }
 
         private int _waveIndex = 0;
         private int _volumeShift;
 
-        public WaveChannel()
+        protected override int ChannelMaxLength => 256;
+
+
+        private byte[] _waveTable = new byte[0x10] { 0x84, 0x40, 0x43, 0xAA, 
+                                                     0x2D, 0x78, 0x92, 0x3C, 
+                                                     0x60, 0x59, 0x59, 0xB0, 
+                                                     0x34, 0xB8, 0x2E, 0xDA };
+
+        internal void WriteWaveRam(ushort address, byte data)
         {
-            WaveTable = new byte[0x10] { 0x84, 0x40, 0x43, 0xAA, 
-                                         0x2D, 0x78, 0x92, 0x3C, 
-                                         0x60, 0x59, 0x59, 0xB0, 
-                                         0x34, 0xB8, 0x2E, 0xDA };
+            //TODO: wave ram corruption
+            _waveTable[address - 0xFF30] = data;
+        }
+
+        internal byte ReadWaveRam(ushort address)
+        {
+            if (_isEnabled)
+            {
+                if (AccessingWaveRam)
+                    return _waveTable[_waveIndex];
+                else
+                    return 0xFF;
+            }
+                
+            else
+                return _waveTable[address - 0xFF30];
         }
 
         public override void AdvanceMachineCycle()
@@ -138,29 +167,27 @@
 
             if (_timer == 0)
             {
-                _waveIndex++;
+                if (_useLowNibble)
+                {
+                    _waveIndex++;
 
-                if (_waveIndex > 0xF)
-                    _waveIndex = 0;
+                    if (_waveIndex > 0xF)
+                        _waveIndex = 0;
+                }
+
+                _useLowNibble = !_useLowNibble;
 
                 //fill buffer
-                _waveBuffer = WaveTable[_waveIndex];
+                if(_useLowNibble)
+                    _waveBuffer = (byte)(_waveTable[_waveIndex] & 0x0F);
+                else
+                    _waveBuffer = (byte)((_waveTable[_waveIndex] & 0xF0) >> 4);
 
-                //reload timer
-                _timer = (2048 - _frequency)*2;
+                AccessingWaveRam = true;
+
+                ReloadFrequencyTimer();
             }
-        }
-
-        public override void ClockLength()
-        {
-            if (_compareLength && _lengthCounter > 0)
-            {
-                _lengthCounter--;
-
-                if (_lengthCounter == 0)
-                    _isEnabled = false;
-            }
-        }
+        }        
 
         public override byte GetSample()
         {
@@ -168,7 +195,7 @@
             if (!IsEnabled())
                 return 0;
 
-            return (byte)(_waveBuffer >> _volumeShift);
+            return (byte)((_waveBuffer >> _volumeShift) * 17);
         }
 
         public override bool IsEnabled()
@@ -178,25 +205,27 @@
 
         public override void Disable()
         {
-            _lengthCounter = 0;
             _timer = 0;
             _isEnabled = false;
+
+            _useLowNibble = false;
+            _waveIndex = 0;
 
             OnOff = 0;
             OutputLevel = 0;
             FrequencyHi = 0;
             FrequencyLo = 0;
-            SoundLength = 0;
+
+            base.Disable();
         }
 
         private void Trigger()
         {
             _isEnabled = true;
 
-            _timer = (2048 - _frequency) * 2;
+            ReloadFrequencyTimer();
 
-            if (_lengthCounter == 0)
-                _lengthCounter = 256;
+            ReloadLengthCounter();
 
             //set wave index to 0 but do not reload buffer
             _waveIndex = 0;
@@ -208,6 +237,11 @@
         private bool IsDacDisabled()
         {
             return !_dacOn;
+        }
+
+        private void ReloadFrequencyTimer()
+        {
+            _timer = (2048 - _frequency) * 2;
         }
     }
 }
