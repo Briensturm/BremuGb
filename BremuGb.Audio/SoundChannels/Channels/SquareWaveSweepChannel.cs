@@ -5,27 +5,23 @@
         private const int OverflowValue = 2047;
 
         private uint _frequencyShadowRegister;
-        private bool _sweepEnabled;
-        private int _sweepTimer;
 
-        private int _sweepPeriod;
-        private int _sweepShift;
+        private bool _sweepEnabled;
         private bool _sweepNegate;
+        private int _sweepTimer;
+        private int _sweepPeriod;
+        private int _sweepShift;        
 
         private bool _prepareNegateDisable;
 
-        //NR10 FF10
-        public byte Sweep
+        internal byte Sweep
         {
-            get
-            {
-                return (byte)(_sweepPeriod << 4 |
-                             (_sweepNegate ? 1 : 0) << 3 |
-                              _sweepShift |
-                               0x80);
-            }
+            get => (byte)(_sweepPeriod << 4 |
+                         (_sweepNegate ? 1 : 0) << 3 |
+                          _sweepShift |
+                           0x80);
 
-            internal set
+            set
             {
                 //obscure sweep behavior
                 if (_sweepNegate && (value & 0x08) == 0 && _prepareNegateDisable)
@@ -37,20 +33,18 @@
             }
         }
 
-        //NR14 FF14
-        public override byte FrequencyHi 
+        internal override byte LengthEnable 
         { 
-            get => base.FrequencyHi;
+            get => base.LengthEnable;
 
-            internal set
+            set
             {
-                base.FrequencyHi = value;
+                base.LengthEnable = value;
 
                 //handle sweep specific behavior in case of trigger
                 if ((value & 0x80) == 0x80)
                 {
                     _prepareNegateDisable = false;
-
                     _frequencyShadowRegister = (uint)_frequency;
 
                     ReloadSweepTimer();

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 using BremuGb.Cartridge.MemoryBankController;
 using BremuGb.Cartridge;
@@ -9,7 +10,6 @@ using BremuGb.Video;
 using BremuGb.Input;
 using BremuGb.Audio;
 using BremuGb.Audio.SoundChannels;
-using System;
 
 namespace BremuGb
 {
@@ -68,12 +68,12 @@ namespace BremuGb
         {
             _joypad.SetJoypadState(joypadState);
 
+            _apu.AdvanceMachineCycle();
             _cpuCore.AdvanceMachineCycle();
 
             _dmaController.AdvanceMachineCycle();
             _timer.AdvanceMachineCycle();
-
-            _apu.AdvanceMachineCycle();
+            
             _ppu.AdvanceMachineCycle();
         }
 

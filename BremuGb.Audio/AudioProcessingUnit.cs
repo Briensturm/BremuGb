@@ -9,6 +9,8 @@ namespace BremuGb.Audio
 {
     public class AudioProcessingUnit : IMemoryAccessDelegate
     {
+        public event EventHandler OutputTerminalChangedEvent;
+
         private SquareWaveSweepChannel _squareWaveSweepChannel;
         private SquareWaveChannel _squareWaveChannel;       
         private WaveChannel _waveChannel;
@@ -19,6 +21,62 @@ namespace BremuGb.Audio
         private FrameSequencer _frameSequencer;
 
         private List<ushort> _unusedAudioAddresses;
+
+        private int _lastOnOffValue = 1;
+        private int _frameSequencerTimer = 0;
+        private int _frameSequencerPeriod = 2048;
+
+        private byte _channelOutputSelect;
+
+        private byte ChannelOutputSelect
+        {
+            get => _channelOutputSelect;
+
+            set
+            {
+                if (_channelOutputSelect != value)
+                {
+                    _channelOutputSelect = value;
+                    NotifyOutputTerminalChanged();
+                }
+            }
+        }
+
+        //TODO
+        private byte MasterVolume { get; set; }
+
+        private byte SoundOnOff
+        {
+            get => (byte)(_lastOnOffValue << 7 |
+                          0x70 |
+                         (_noiseChannel.IsEnabled() ? 0x08 : 0x00) |
+                         (_waveChannel.IsEnabled() ? 0x04 : 0x00) |
+                         (_squareWaveChannel.IsEnabled() ? 0x02 : 0x00) |
+                         (_squareWaveSweepChannel.IsEnabled() ? 0x01 : 0x00));
+
+            set
+            {
+                if ((value & 0x80) == 0x80)
+                {
+                    if (_lastOnOffValue == 0)
+                        _frameSequencer.ResetAndEnable();
+
+                    _lastOnOffValue = 1;
+                }
+                else
+                {
+                    _frameSequencer.Disable();
+
+                    foreach (var soundChannel in _soundChannels)
+                        soundChannel.Disable();
+
+                    ChannelOutputSelect = 0;
+                    MasterVolume = 0;
+
+                    _lastOnOffValue = 0;
+                }
+            }
+        }
 
         public AudioProcessingUnit()
         {
@@ -36,137 +94,35 @@ namespace BremuGb.Audio
             _soundChannels[2] = _waveChannel;
             _soundChannels[3] = _noiseChannel;
 
+            //initial values after boot
             ChannelOutputSelect = 0xF3;
             SoundOnOff = 0xF0;
         }
-
-        private int _frameSequencerTimer = 0;
-
-        private byte _channelOutputSelect;
-        public byte ChannelOutputSelect 
-        { 
-            get => _channelOutputSelect;
-
-            private set
-            {
-                if(_channelOutputSelect != value)
-                {
-                    _channelOutputSelect = value;
-                    NotifyOutputTerminalChanged();
-                }
-            } 
-        }
         
-        public byte MasterVolume { get; private set; }
-        public byte SoundOnOff 
-        {
-            get
-            {
-                return (byte)(_lastOnOffValue << 7 |
-                                0x70 |
-                                (_noiseChannel.IsEnabled() ? 0x08 : 0x00) |
-                                (_waveChannel.IsEnabled() ? 0x04 : 0x00) |
-                                (_squareWaveChannel.IsEnabled() ? 0x02 : 0x00) |
-                                (_squareWaveSweepChannel.IsEnabled() ? 0x01 : 0x00));
-            }
-
-            private set
-            {
-                if ((value & 0x80) == 0x80)
-                {
-                    if (_lastOnOffValue == 0)
-                        _frameSequencer.ResetAndEnable();
-
-                    _lastOnOffValue = 1;
-                }
-                else
-                {
-                    _frameSequencer.Disable();                    
-
-                    foreach (var soundChannel in _soundChannels)
-                        soundChannel.Disable();
-
-                    ChannelOutputSelect = 0;
-                    MasterVolume = 0;
-
-                    _lastOnOffValue = 0;
-                }                    
-            }
-        }
-
-        private int _lastOnOffValue = 1;
-
         public byte GetCurrentSample(Channels soundChannel)
         {
-            switch(soundChannel)
-            {
-                case Channels.Channel1:
-                    return _soundChannels[0].GetSample();
-                case Channels.Channel2:
-                    return _soundChannels[1].GetSample();
-                case Channels.Channel3:
-                    return _soundChannels[2].GetSample();
-                case Channels.Channel4:
-                    return _soundChannels[3].GetSample();
-                default:
-                    throw new InvalidOperationException("Invalid sound channel specified");
-            }
+            return _soundChannels[(int)soundChannel].GetSample();
         }
 
         public SoundOutputTerminal GetOutputTerminal(Channels soundChannel)
         {
-            var output = SoundOutputTerminal.None;
+            var outputTerminal = SoundOutputTerminal.None;
 
-            switch (soundChannel)
-            {
-                case Channels.Channel1:
-                    if ((ChannelOutputSelect & 0x10) == 0x10)
-                        output |= SoundOutputTerminal.Left;
-                    if ((ChannelOutputSelect & 0x01) == 0x01)
-                        output |= SoundOutputTerminal.Right;
-                    break;
+            var leftBitMask = 0x10 << (int)soundChannel;
+            var rightBitMask = 0x01 << (int)soundChannel;
 
-                case Channels.Channel2:
-                    if ((ChannelOutputSelect & 0x20) == 0x20)
-                        output |= SoundOutputTerminal.Left;
-                    if ((ChannelOutputSelect & 0x02) == 0x02)
-                        output |= SoundOutputTerminal.Right;
-                    break;
+            if ((ChannelOutputSelect & leftBitMask) == leftBitMask)
+                outputTerminal |= SoundOutputTerminal.Left;
+            if ((ChannelOutputSelect & rightBitMask) == rightBitMask)
+                outputTerminal |= SoundOutputTerminal.Right;
 
-                case Channels.Channel3:
-                    if ((ChannelOutputSelect & 0x40) == 0x40)
-                        output |= SoundOutputTerminal.Left;
-                    if ((ChannelOutputSelect & 0x04) == 0x04)
-                        output |= SoundOutputTerminal.Right;
-                    break;
-
-                case Channels.Channel4:
-                    if ((ChannelOutputSelect & 0x80) == 0x80)
-                        output |= SoundOutputTerminal.Left;
-                    if ((ChannelOutputSelect & 0x08) == 0x08)
-                        output |= SoundOutputTerminal.Right;
-                    break;
-
-                default:
-                    throw new InvalidOperationException("Invalid sound channel specified");
-            }
-
-            return output;
-        }
-
-        public event EventHandler OutputTerminalChangedEvent;
-
-        private void NotifyOutputTerminalChanged()
-        {
-            OutputTerminalChangedEvent?.Invoke(this, null);
-        }
+            return outputTerminal;
+        }        
 
         public void AdvanceMachineCycle()
         {
-            _waveChannel.AccessingWaveRam = false;
-
             _frameSequencerTimer++;
-            if(_frameSequencerTimer == 2048)
+            if(_frameSequencerTimer == _frameSequencerPeriod)
             {
                 _frameSequencerTimer = 0;
                 _frameSequencer.AdvanceClock(_soundChannels);
@@ -180,48 +136,55 @@ namespace BremuGb.Audio
 
         public byte DelegateMemoryRead(ushort address)
         {
-            if (address >= 0xFF30 && address <= 0xFF3F)
+            if (address >= AudioRegisters.WaveRamFirstAddress && address <= AudioRegisters.WaveRamLastAddress)
                 return _waveChannel.ReadWaveRam(address);
 
             if (_unusedAudioAddresses.Contains(address))
                 return 0xFF;
 
             return address switch
-            {
-                AudioRegisters.ChannelOutputSelect => ChannelOutputSelect,
-                AudioRegisters.MasterVolume => MasterVolume,
-                AudioRegisters.SoundOnOff => SoundOnOff,
-                AudioRegisters.Channel1.DutyLength => _squareWaveSweepChannel.DutyLength,
-                AudioRegisters.Channel1.Envelope => _squareWaveSweepChannel.Envelope,
-                AudioRegisters.Channel1.FrequencyHi => _squareWaveSweepChannel.FrequencyHi,
-                AudioRegisters.Channel1.FrequencyLo => _squareWaveSweepChannel.FrequencyLo,
-                AudioRegisters.Channel1.Sweep => _squareWaveSweepChannel.Sweep,
-                AudioRegisters.Channel2.DutyLength => _squareWaveChannel.DutyLength,
-                AudioRegisters.Channel2.Envelope => _squareWaveChannel.Envelope,
-                AudioRegisters.Channel2.FrequencyHi => _squareWaveChannel.FrequencyHi,
-                AudioRegisters.Channel2.FrequencyLo => _squareWaveChannel.FrequencyLo,
-                AudioRegisters.Channel3.OnOff => _waveChannel.OnOff,
-                AudioRegisters.Channel3.OutputLevel => _waveChannel.OutputLevel,
-                AudioRegisters.Channel3.FrequencyHi => _waveChannel.FrequencyHi,
-                AudioRegisters.Channel3.FrequencyLo => _waveChannel.FrequencyLo,
-                AudioRegisters.Channel3.SoundLength => _waveChannel.SoundLength,
-                AudioRegisters.Channel4.Envelope => _noiseChannel.Envelope,
-                AudioRegisters.Channel4.InitConsecutive => _noiseChannel.InitConsecutive,
-                AudioRegisters.Channel4.PolynomialCounter => _noiseChannel.PolynomialCounter,
-                AudioRegisters.Channel4.SoundLength => _noiseChannel.SoundLength,
-                _ => throw new InvalidOperationException($"0x{address:X2} is not a valid sound address"),
+            {                
+                AudioRegisters.NR50 => MasterVolume,
+                AudioRegisters.NR51 => ChannelOutputSelect,
+                AudioRegisters.NR52 => SoundOnOff,
+
+                AudioRegisters.Channel1.NR10 => _squareWaveSweepChannel.Sweep,
+                AudioRegisters.Channel1.NR11 => _squareWaveSweepChannel.LengthLoad,
+                AudioRegisters.Channel1.NR12 => _squareWaveSweepChannel.Envelope,
+                AudioRegisters.Channel1.NR13 => _squareWaveSweepChannel.FrequencyLsb,
+                AudioRegisters.Channel1.NR14 => _squareWaveSweepChannel.LengthEnable,
+
+                AudioRegisters.Channel2.NR20 => 0xFF,
+                AudioRegisters.Channel2.NR21 => _squareWaveChannel.LengthLoad,
+                AudioRegisters.Channel2.NR22 => _squareWaveChannel.Envelope,
+                AudioRegisters.Channel2.NR23 => _squareWaveChannel.FrequencyLsb,
+                AudioRegisters.Channel2.NR24 => _squareWaveChannel.LengthEnable,                
+
+                AudioRegisters.Channel3.NR30 => _waveChannel.DacPower,
+                AudioRegisters.Channel3.NR31 => _waveChannel.LengthLoad,
+                AudioRegisters.Channel3.NR32 => _waveChannel.VolumeCode,
+                AudioRegisters.Channel3.NR33 => _waveChannel.FrequencyLsb,
+                AudioRegisters.Channel3.NR34 => _waveChannel.LengthEnable,             
+
+                AudioRegisters.Channel4.NR40 => 0xFF,
+                AudioRegisters.Channel4.NR41 => _noiseChannel.LengthLoad,
+                AudioRegisters.Channel4.NR42 => _noiseChannel.Envelope,
+                AudioRegisters.Channel4.NR43 => _noiseChannel.Polynomial,
+                AudioRegisters.Channel4.NR44 => _noiseChannel.LengthEnable,                
+                
+                _ => throw new InvalidOperationException($"0x{address:X2} is not a valid audio address"),
             };
         }
 
         public void DelegateMemoryWrite(ushort address, byte data)
         {
-            if (address >= 0xFF30 && address <= 0xFF3F)
+            if (address >= AudioRegisters.WaveRamFirstAddress && address <= AudioRegisters.WaveRamLastAddress)
             {
                 _waveChannel.WriteWaveRam(address, data);
                 return;
             }
 
-            if (address == AudioRegisters.SoundOnOff)
+            if (address == AudioRegisters.NR52)
             {
                 SoundOnOff = data;
                 return;
@@ -232,16 +195,16 @@ namespace BremuGb.Audio
                 //on DMG, length counters can still be written when APU is off
                 switch(address)
                 {
-                    case AudioRegisters.Channel1.DutyLength:
+                    case AudioRegisters.Channel1.NR11:
                         _squareWaveSweepChannel.SetLengthCounter(data & 0x3F);
                         break;
-                    case AudioRegisters.Channel2.DutyLength:
+                    case AudioRegisters.Channel2.NR21:
                         _squareWaveChannel.SetLengthCounter(data & 0x3F);
                         break;
-                    case AudioRegisters.Channel3.SoundLength:
+                    case AudioRegisters.Channel3.NR31:
                         _waveChannel.SetLengthCounter(data);
                         break;
-                    case AudioRegisters.Channel4.SoundLength:
+                    case AudioRegisters.Channel4.NR41:
                         _noiseChannel.SetLengthCounter(data & 0x3F);
                         break;
                 }
@@ -250,105 +213,113 @@ namespace BremuGb.Audio
             }
 
             switch (address)
-            {
-                case AudioRegisters.ChannelOutputSelect:
+            {                
+                case AudioRegisters.NR50:
+                    MasterVolume = data;
+                    break;
+                case AudioRegisters.NR51:
                     ChannelOutputSelect = data;
                     break;
-                case AudioRegisters.MasterVolume:
-                    MasterVolume = data;
-                    break;                
-                case AudioRegisters.Channel1.DutyLength:
-                    _squareWaveSweepChannel.DutyLength = data;
-                    break;
-                case AudioRegisters.Channel1.Envelope:
-                    _squareWaveSweepChannel.Envelope = data;
-                    break;
-                case AudioRegisters.Channel1.FrequencyHi:
-                    _squareWaveSweepChannel.FrequencyHi = data;
-                    break;
-                case AudioRegisters.Channel1.FrequencyLo:
-                    _squareWaveSweepChannel.FrequencyLo = data;
-                    break;
-                case AudioRegisters.Channel1.Sweep:
+
+                case AudioRegisters.Channel1.NR10:
                     _squareWaveSweepChannel.Sweep = data;
                     break;
-                case AudioRegisters.Channel2.DutyLength:
-                    _squareWaveChannel.DutyLength = data;
+                case AudioRegisters.Channel1.NR11:
+                    _squareWaveSweepChannel.LengthLoad = data;
                     break;
-                case AudioRegisters.Channel2.Envelope:
+                case AudioRegisters.Channel1.NR12:
+                    _squareWaveSweepChannel.Envelope = data;
+                    break;
+                case AudioRegisters.Channel1.NR13:
+                    _squareWaveSweepChannel.FrequencyLsb = data;
+                    break;
+                case AudioRegisters.Channel1.NR14:
+                    _squareWaveSweepChannel.LengthEnable = data;
+                    break;
+
+                case AudioRegisters.Channel2.NR21:
+                    _squareWaveChannel.LengthLoad = data;
+                    break;
+                case AudioRegisters.Channel2.NR22:
                     _squareWaveChannel.Envelope = data;
                     break;
-                case AudioRegisters.Channel2.FrequencyHi:
-                    _squareWaveChannel.FrequencyHi = data;
+                case AudioRegisters.Channel2.NR23:
+                    _squareWaveChannel.FrequencyLsb = data;
                     break;
-                case AudioRegisters.Channel2.FrequencyLo:
-                    _squareWaveChannel.FrequencyLo = data;
+                case AudioRegisters.Channel2.NR24:
+                    _squareWaveChannel.LengthEnable = data;
                     break;
-                case AudioRegisters.Channel3.OnOff:
-                    _waveChannel.OnOff = data;
+                
+                case AudioRegisters.Channel3.NR30:
+                    _waveChannel.DacPower = data;
                     break;
-                case AudioRegisters.Channel3.OutputLevel:
-                    _waveChannel.OutputLevel = data;
+                case AudioRegisters.Channel3.NR31:
+                    _waveChannel.LengthLoad = data;
                     break;
-                case AudioRegisters.Channel3.FrequencyHi:
-                    _waveChannel.FrequencyHi = data;
+                case AudioRegisters.Channel3.NR32:
+                    _waveChannel.VolumeCode = data;
                     break;
-                case AudioRegisters.Channel3.FrequencyLo:
-                    _waveChannel.FrequencyLo = data;
+                case AudioRegisters.Channel3.NR33:
+                    _waveChannel.FrequencyLsb = data;
                     break;
-                case AudioRegisters.Channel3.SoundLength:
-                    _waveChannel.SoundLength = data;
+                case AudioRegisters.Channel3.NR34:
+                    _waveChannel.LengthEnable = data;
                     break;
-                case AudioRegisters.Channel4.Envelope:
+
+                case AudioRegisters.Channel4.NR41:
+                    _noiseChannel.LengthLoad = data;
+                    break;
+                case AudioRegisters.Channel4.NR42:
                     _noiseChannel.Envelope = data;
                     break;
-                case AudioRegisters.Channel4.InitConsecutive:
-                    _noiseChannel.InitConsecutive = data;
+                case AudioRegisters.Channel4.NR43:
+                    _noiseChannel.Polynomial = data;
                     break;
-                case AudioRegisters.Channel4.PolynomialCounter:
-                    _noiseChannel.PolynomialCounter = data;
-                    break;
-                case AudioRegisters.Channel4.SoundLength:
-                    _noiseChannel.SoundLength = data;
-                    break;
+                case AudioRegisters.Channel4.NR44:
+                    _noiseChannel.LengthEnable = data;
+                    break;                
             }            
         }
 
         public IEnumerable<ushort> GetDelegatedAddresses()
         {
-            var addressList = new List<ushort>();          
+            var addressList = new List<ushort>();
 
-            var audioRegisterAddresses = new ushort[] { AudioRegisters.ChannelOutputSelect,
-                                                        AudioRegisters.MasterVolume,
-                                                        AudioRegisters.SoundOnOff,
-                                                        AudioRegisters.Channel1.DutyLength,
-                                                        AudioRegisters.Channel1.Envelope,
-                                                        AudioRegisters.Channel1.FrequencyHi,
-                                                        AudioRegisters.Channel1.FrequencyLo,
-                                                        AudioRegisters.Channel1.Sweep,
-                                                        AudioRegisters.Channel2.DutyLength,
-                                                        AudioRegisters.Channel2.Envelope,
-                                                        AudioRegisters.Channel2.FrequencyHi,
-                                                        AudioRegisters.Channel2.FrequencyLo,
-                                                        AudioRegisters.Channel3.OnOff,
-                                                        AudioRegisters.Channel3.OutputLevel,
-                                                        AudioRegisters.Channel3.FrequencyHi,
-                                                        AudioRegisters.Channel3.FrequencyLo,
-                                                        AudioRegisters.Channel3.SoundLength,
-                                                        AudioRegisters.Channel4.Envelope,
-                                                        AudioRegisters.Channel4.InitConsecutive,
-                                                        AudioRegisters.Channel4.PolynomialCounter,
-                                                        AudioRegisters.Channel4.SoundLength};            
+            var audioRegisterAddresses = new ushort[] { AudioRegisters.NR51,
+                                                        AudioRegisters.NR50,
+                                                        AudioRegisters.NR52,
 
-            var waveRamAddresses = new ushort[0x10];
+                                                        AudioRegisters.Channel1.NR10,
+                                                        AudioRegisters.Channel1.NR11,
+                                                        AudioRegisters.Channel1.NR12,
+                                                        AudioRegisters.Channel1.NR13,
+                                                        AudioRegisters.Channel1.NR14,
+
+                                                        AudioRegisters.Channel2.NR20,
+                                                        AudioRegisters.Channel2.NR21,
+                                                        AudioRegisters.Channel2.NR22,
+                                                        AudioRegisters.Channel2.NR23,
+                                                        AudioRegisters.Channel2.NR24,
+
+                                                        AudioRegisters.Channel3.NR30,
+                                                        AudioRegisters.Channel3.NR31,
+                                                        AudioRegisters.Channel3.NR32,
+                                                        AudioRegisters.Channel3.NR33,
+                                                        AudioRegisters.Channel3.NR34,
+
+                                                        AudioRegisters.Channel4.NR40,
+                                                        AudioRegisters.Channel4.NR41,
+                                                        AudioRegisters.Channel4.NR42,
+                                                        AudioRegisters.Channel4.NR43,
+                                                        AudioRegisters.Channel4.NR44 };            
+
+            var waveRamAddresses = new ushort[AudioRegisters.WaveRamLastAddress - AudioRegisters.WaveRamFirstAddress + 1];
             for (int i = 0; i < waveRamAddresses.Length; i++)
-                waveRamAddresses[i] = (ushort)(i + 0xFF30);
+                waveRamAddresses[i] = (ushort)(i + AudioRegisters.WaveRamFirstAddress);
 
             //these unused audio addresses always return 0xFF on read and ignore writes
             _unusedAudioAddresses = new List<ushort>();
-            _unusedAudioAddresses.Add(0xFF15);
-            _unusedAudioAddresses.Add(0xFF1F);
-            for (ushort i = 0xFF27; i <= 0xFF2F; i++)
+            for (ushort i = AudioRegisters.UnusedAudioAddressRangeStart; i <= AudioRegisters.UnusedAudioAddressRangeEnd; i++)
                 _unusedAudioAddresses.Add(i);
             
             addressList.AddRange(audioRegisterAddresses);
@@ -356,6 +327,11 @@ namespace BremuGb.Audio
             addressList.AddRange(_unusedAudioAddresses);
 
             return addressList;
+        }
+
+        private void NotifyOutputTerminalChanged()
+        {
+            OutputTerminalChangedEvent?.Invoke(this, null);
         }
     }
 }

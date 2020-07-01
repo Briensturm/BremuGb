@@ -1,144 +1,118 @@
-﻿using System;
+﻿using System.Collections.Generic;
 
 namespace BremuGb.Audio.SoundChannels
 {
     internal class SquareWaveChannel : SoundChannelBase
     {
-        private int _timer = 0;
-        protected int _frequency = 0;
+        private int _frequencyTimer;
+        protected int _frequency;
 
-        private int _envelopeTimer = 0;
+        private int _envelopeTimer;
+        private int _initialVolume;
+        private int _currentVolume;
+        private int _envelopePeriod;
+        private bool _envelopeIncrease;
+        private bool _envelopeEnable;
 
-        private int _initialVolume = 0;
-        private int _currentVolume = 0;
+        private int _dutyPatternSelect;
+        private int _dutyIndex;        
 
-        private bool _envelopeIncrease = false;
-        private int _envelopePeriod = 0;
-
-        private int _dutyPatternSelect = 0;
-        private int _dutyIndex = 0;
-
-        private byte[] _dutyPattern0;
-        private byte[] _dutyPattern1;
-        private byte[] _dutyPattern2;
-        private byte[] _dutyPattern3;
+        private List<byte[]> _dutyPattern = new List<byte[]> { new byte[8] { 0, 1, 1, 1, 1, 1, 1, 0 },
+                                                               new byte[8] { 0, 1, 1, 1, 1, 1, 1, 0 },
+                                                               new byte[8] { 1, 0, 0, 0, 0, 1, 1, 1 },
+                                                               new byte[8] { 1, 0, 0, 0, 0, 0, 0, 1 },
+                                                               new byte[8] { 0, 0, 0, 0, 0, 0, 0, 1 }};
 
         protected override int ChannelMaxLength => 64;
 
-        internal SquareWaveChannel()
+        internal byte LengthLoad
         {
-            _dutyPattern3 = new byte[8] { 0, 1, 1, 1, 1, 1, 1, 0 };
-            _dutyPattern2 = new byte[8] { 1, 0, 0, 0, 0, 1, 1, 1 };
-            _dutyPattern1 = new byte[8] { 1, 0, 0, 0, 0, 0, 0, 1 };
-            _dutyPattern0 = new byte[8] { 0, 0, 0, 0, 0, 0, 0, 1 };
-        }
-
-        public byte DutyLength
-        {
-            get
-            {
-                return (byte)((_dutyPatternSelect << 6) | 0x3F);
-            }
-            internal set
+            get => (byte)((_dutyPatternSelect << 6) | 0x3F);
+            
+            set
             {
                 _dutyPatternSelect = (value & 0xC0) >> 6;
                 _lengthCounter = ChannelMaxLength - (value & 0x3F);
             }
         }
         
-        public byte Envelope
+        internal byte Envelope
         {
-            get
-            {
-                return (byte)(_initialVolume << 4 | 
-                                (_envelopeIncrease ? 1 : 0) << 3 |
-                                _envelopePeriod);
-            }
-            internal set
+            get => (byte)(_initialVolume << 4 |
+                         (_envelopeIncrease ? 1 : 0) << 3 |
+                          _envelopePeriod);
+            
+            set
             {
                 _initialVolume = (value & 0xF0) >> 4;
                 _envelopeIncrease = (value & 0x8) == 0x8;
                 _envelopePeriod = value & 0x7;
 
                 if (IsDacDisabled())
+                {
                     _isEnabled = false;
+                    _envelopeEnable = false;
+                }
             }
         }
-        
-        public virtual byte FrequencyHi
-        {
-            get
-            {
-                return (byte)(_compareLength ? 0xFF : 0xBF);
-            }
 
-            internal set
+        internal byte FrequencyLsb
+        {
+            get => 0xFF;
+            set => _frequency = (_frequency & 0x700) | value;
+        }
+
+        internal virtual byte LengthEnable
+        {
+            get => (byte)(_compareLength ? 0xFF : 0xBF);
+
+            set
             {
                 _frequency = (_frequency & 0xFF) | ((value & 0x7) << 8);
 
-                var oldCompareLength = _compareLength;
-                _compareLength = (value & 0x40) == 0x40;
-
-                //obscure behavior
-                if(!oldCompareLength && _compareLength && !_prepareClockLength && _lengthCounter > 0)
-                {
-                    _lengthCounter--;
-
-                    //if decremented to zero and no trigger, disable channel
-                    if (_lengthCounter == 0 && ((value & 0x80) == 0))
-                        _isEnabled = false;
-                }
+                HandleLengthClocking(value);
 
                 if ((value & 0x80) == 0x80)
                     Trigger();
             }
-        }
-
-        public byte FrequencyLo
-        {
-            get
-            {
-                return 0xFF;
-            }
-            internal set
-            {
-                _frequency = (_frequency & 0x700) | value;
-            }
-        }
+        }        
 
         public override void AdvanceMachineCycle()
         {
-            if (_timer == 0)
+            if (_frequencyTimer == 0)
                 return;
 
-            _timer--;
+            _frequencyTimer--;
 
-            if(_timer == 0)
+            if(_frequencyTimer == 0)
             {
                 _dutyIndex++;
                 if (_dutyIndex == 8)
                     _dutyIndex = 0;
 
                 //reload timer
-                _timer = 2048 - _frequency;
+                _frequencyTimer = 2048 - _frequency;
             }
         }
 
         public override void ClockEnvelope()
         {
-            if (_envelopeTimer == 0 || _envelopePeriod == 0)
+            if (_envelopeTimer > 0)
+                _envelopeTimer--;
+            if (_envelopeTimer > 0)
                 return;
-            _envelopeTimer--;
 
-            if(_envelopeTimer == 0)
-            {
-                if (_envelopeIncrease && _currentVolume < 0xF)
-                    _currentVolume++;
-                else if (!_envelopeIncrease && _currentVolume > 0)
-                    _currentVolume--;
+            ReloadEnvelopeTimer();
 
-                _envelopeTimer = _envelopePeriod;
-            }            
+            if (!_envelopeEnable || _envelopePeriod == 0)
+                return;
+
+            if (_envelopeIncrease && _currentVolume < 0xF)
+                _currentVolume++;
+            else if (!_envelopeIncrease && _currentVolume > 0)
+                _currentVolume--;
+            else if ((_envelopeIncrease && _currentVolume == 0xF) || (!_envelopeIncrease && _currentVolume == 0))
+                _envelopeEnable = false;
         }
 
         public override byte GetSample()
@@ -146,26 +120,7 @@ namespace BremuGb.Audio.SoundChannels
             if(!IsEnabled())            
                 return 0;
 
-            int output;
-            switch(_dutyPatternSelect)
-            {
-                case 0:
-                    output = _dutyPattern0[_dutyIndex];
-                    break;
-                case 1:
-                    output = _dutyPattern1[_dutyIndex];
-                    break;
-                case 2:
-                    output = _dutyPattern2[_dutyIndex];
-                    break;
-                case 3:
-                    output = _dutyPattern3[_dutyIndex];
-                    break;
-                default:
-                    throw new InvalidOperationException();
-            }
-
-            return (byte)(output * _currentVolume *17);
+            return (byte)(_dutyPattern[_dutyPatternSelect][_dutyIndex] * _currentVolume *17);
         }
 
         public override bool IsEnabled()
@@ -175,34 +130,46 @@ namespace BremuGb.Audio.SoundChannels
 
         public override void Disable()
         {
-            _envelopeTimer = 0;
-            _timer = 0;
             _isEnabled = false;
+            _envelopeEnable = false;
+            _envelopeTimer = 0;
+            _frequencyTimer = 0;
+            _dutyPatternSelect = 0;            
 
-            Envelope = 0;
-            _dutyPatternSelect = 0;
-            FrequencyHi = 0;
-            FrequencyLo = 0;
+            Envelope = 0;            
+            FrequencyLsb = 0;
+            LengthEnable = 0;            
 
             base.Disable();
+        }
+
+        private void ReloadEnvelopeTimer()
+        {
+            if (_envelopePeriod == 0)
+                _envelopeTimer = 8;
+            else
+                _envelopeTimer = _envelopePeriod;
         }
 
         private void Trigger()
         {
             _isEnabled = true;
+            _envelopeEnable = true;
 
             //obscure behavior: update timer except two lower bits
-            _timer = (2048 - _frequency) & 0xFFFC;
+            _frequencyTimer = (2048 - _frequency) & 0xFFFC;
 
             ReloadLengthCounter();
+            ReloadEnvelopeTimer();
 
             _currentVolume = _initialVolume;
 
-            _envelopeTimer = _envelopePeriod;
-
             //if dac is off, disable channel
             if (IsDacDisabled())
+            {
                 _isEnabled = false;
+                _envelopeEnable = false;
+            }
         }
 
         private bool IsDacDisabled()

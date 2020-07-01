@@ -2,16 +2,16 @@
 {
     internal interface ISoundChannel
     {
+        void AdvanceMachineCycle();
+
         void PrepareClockLength();
         void ClockLength();
         void ClockEnvelope();
         void ClockSweep();
 
         byte GetSample();
-
-        void AdvanceMachineCycle();
+        
         bool IsEnabled();
-
         void Disable();
 
         void SetLengthCounter(int length);

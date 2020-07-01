@@ -37,6 +37,13 @@ namespace BremuGb.IntegrationTests
             DoesScreenMatchExpectation(screen, "ExpectedScreens/Blargg/mem_timing.png");
         }
 
+        [Test]
+        public void Test_dmg_sound()
+        {
+            var screen = RunTestRom("Roms/Blargg/dmg_sound.gb", 40000000);
+            DoesScreenMatchExpectation(screen, "ExpectedScreens/Blargg/dmg_sound.png");
+        }
+
         private byte[] RunTestRom(string romPath, int cycleCount)
         {
             var completedCycles = 0;

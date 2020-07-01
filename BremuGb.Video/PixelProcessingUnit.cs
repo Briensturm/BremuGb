@@ -84,17 +84,17 @@ namespace BremuGb.Video
         {
             if (address >= 0x8000 && address <= 0x97FF)
             {
-                _logger.Log($"Writing tile data 0x{data:X2} at 0x{address:X2}");
+                //_logger.Log($"Writing tile data 0x{data:X2} at 0x{address:X2}");
                 _context.TileData[address - 0x8000] = data;
             }
             else if (address >= 0x9800 && address <= 0x9BFF)
             {
-                _logger.Log($"Writing tile map 0 data 0x{data:X2} at 0x{address:X2}");
+                //_logger.Log($"Writing tile map 0 data 0x{data:X2} at 0x{address:X2}");
                 _context.FirstTileMap[address - 0x9800] = data;
             }
             else if (address >= 0x9C00 && address <= 0x9FFF)
             {
-                _logger.Log($"Writing tile map 1 data 0x{data:X2} at 0x{address:X2}");
+                //_logger.Log($"Writing tile map 1 data 0x{data:X2} at 0x{address:X2}");
                 _context.SecondTileMap[address - 0x9C00] = data;
             }
             else if(address >= 0xFE00 && address <= 0xFE9F)

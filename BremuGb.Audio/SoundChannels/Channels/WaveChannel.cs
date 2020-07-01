@@ -2,25 +2,33 @@
 {
     internal class WaveChannel : SoundChannelBase
     {
-        private int _timer;
-        private byte _waveBuffer;
-
-        private bool _dacOn;
-
+        private int _frequencyTimer;
         private int _frequency;
 
+        private bool _dacOn;        
+
         private bool _useLowNibble;
+        private int _waveIndex;
+        private byte _sampleBuffer;
 
-        internal bool AccessingWaveRam { get; set; }
+        private byte[] _waveTable = new byte[0x10] { 0x84, 0x40, 0x43, 0xAA,
+                                                     0x2D, 0x78, 0x92, 0x3C,
+                                                     0x60, 0x59, 0x59, 0xB0,
+                                                     0x34, 0xB8, 0x2E, 0xDA };
 
-        public byte OnOff 
+        private int _volumeCode;
+        private int[] _volumeShift = new int[] { 4, 0, 1, 2 };
+
+        private bool _accessWaveRamApuCycle0;
+        private bool _accessWaveRamApuCycle1;
+
+        protected override int ChannelMaxLength => 256;
+
+        internal byte DacPower
         { 
-            get
-            {
-                return (byte)(_dacOn ? 0xFF : 0x7F);
-            }
+            get => (byte)(_dacOn ? 0xFF : 0x7F);
 
-            internal set
+            set
             {
                 _dacOn = (value & 0x80) == 0x80;
 
@@ -28,144 +36,116 @@
                     _isEnabled = false;
             }
         }
-        public byte OutputLevel 
-        { 
-            get
-            {
-                int shiftCode = 0;
 
-                switch(_volumeShift)
-                {
-                    case 0:
-                        shiftCode = 1;
-                        break;
-                    case 1:
-                        shiftCode = 2;
-                        break;
-                    case 2:
-                        shiftCode = 3;
-                        break;
-                    case 4:
-                        shiftCode = 0;
-                        break;
-                }
-
-                return (byte)((shiftCode << 5) | 0x9F);
-            }
-
-            internal set
-            {
-                var shiftCode = (value & 0x60) >> 5; 
-
-                switch(shiftCode)
-                {
-                    case 0:
-                        _volumeShift = 4;
-                        break;
-                    case 1:
-                        _volumeShift = 0;
-                        break;
-                    case 2:
-                        _volumeShift = 1;
-                        break;
-                    case 3:
-                        _volumeShift = 2;
-                        break;
-                }
-            }
+        internal byte LengthLoad
+        {
+            get => 0xFF;
+            set => _lengthCounter = ChannelMaxLength - value;
         }
 
-        public byte FrequencyHi
-        {
-            get
-            {
-                return (byte)(_compareLength ? 0xFF : 0xBF);
-            }
+        internal byte VolumeCode 
+        { 
+            get => (byte)((_volumeCode << 5) | 0x9F);         
+            set => _volumeCode = (value & 0x60) >> 5;
+        }
 
-            internal set
+        public byte FrequencyLsb
+        {
+            get => 0xFF;
+            internal set => _frequency = (_frequency & 0x700) | value;
+        }
+
+        internal byte LengthEnable
+        {
+            get => (byte)(_compareLength ? 0xFF : 0xBF);
+
+            set
             {
                 _frequency = (_frequency & 0xFF) | ((value & 0x7) << 8);
 
-                var oldCompareLength = _compareLength;
-                _compareLength = (value & 0x40) == 0x40;
-
-                //obscure behavior
-                if (!oldCompareLength && _compareLength && !_prepareClockLength && _lengthCounter > 0)
-                {
-                    _lengthCounter--;
-
-                    //if decremented to zero and no trigger, disable channel
-                    if (_lengthCounter == 0 && ((value & 0x80) == 0))
-                        _isEnabled = false;
-                }
+                HandleLengthClocking(value);
 
                 if ((value & 0x80) == 0x80)
                     Trigger();
             }
-        }
-        public byte FrequencyLo
+        }        
+
+        public override void AdvanceMachineCycle()
         {
-            get
-            {
-                return 0xFF;
-            }
-            internal set
-            {
-                _frequency = (_frequency & 0x700) | value;
-            }
-        }
-        public byte SoundLength 
-        { 
-            get
-            {
-                return 0xFF;
-            }
-
-            internal set
-            {
-                _lengthCounter = ChannelMaxLength - value;
-            }
+            //use APU cycles for wave ram read timing, 2 APU cycles per m-cycle
+            for (int i = 0; i < 2; i++)
+                AdvanceApuCycle(i);
         }
 
-        private int _waveIndex = 0;
-        private int _volumeShift;
+        public override byte GetSample()
+        {
+            if (!IsEnabled())
+                return 0;
 
-        protected override int ChannelMaxLength => 256;
+            if (_useLowNibble)
+                return (byte)(((_sampleBuffer & 0x0F) >> _volumeShift[_volumeCode]) * 17);
+            else
+                return (byte)((((_sampleBuffer & 0xF0) >> 4) >> _volumeShift[_volumeCode]) * 17);
+        }
 
+        public override bool IsEnabled()
+        {
+            return _isEnabled;
+        }
 
-        private byte[] _waveTable = new byte[0x10] { 0x84, 0x40, 0x43, 0xAA, 
-                                                     0x2D, 0x78, 0x92, 0x3C, 
-                                                     0x60, 0x59, 0x59, 0xB0, 
-                                                     0x34, 0xB8, 0x2E, 0xDA };
+        public override void Disable()
+        {            
+            _isEnabled = false;
+            _useLowNibble = false;
+            _frequencyTimer = 0;
+            _waveIndex = 0;
+
+            DacPower = 0;
+            VolumeCode = 0;            
+            FrequencyLsb = 0;
+            LengthEnable = 0;
+
+            base.Disable();
+        }
 
         internal void WriteWaveRam(ushort address, byte data)
         {
-            //TODO: wave ram corruption
-            _waveTable[address - 0xFF30] = data;
+            if (_isEnabled)
+            {
+                if (_accessWaveRamApuCycle0)
+                    _waveTable[_waveIndex] = data;
+            }
+
+            else
+                _waveTable[address - 0xFF30] = data;
         }
 
         internal byte ReadWaveRam(ushort address)
         {
             if (_isEnabled)
             {
-                if (AccessingWaveRam)
+                if (_accessWaveRamApuCycle0)
                     return _waveTable[_waveIndex];
                 else
-                    return 0xFF;
+                    return 0xFF;             
             }
                 
             else
                 return _waveTable[address - 0xFF30];
-        }
+        }               
 
-        public override void AdvanceMachineCycle()
+        private void AdvanceApuCycle(int apuIteration)
         {
-            if (_timer == 0)
+            if (apuIteration == 0)
+                _accessWaveRamApuCycle0 = false;
+            else if (apuIteration == 1)
+                _accessWaveRamApuCycle1 = false;
+
+            if (_frequencyTimer == 0)
                 return;
 
-            _timer--;
-
-            if (_timer == 0)
+            _frequencyTimer--;
+            if (_frequencyTimer == 0)
             {
                 if (_useLowNibble)
                 {
@@ -178,60 +158,61 @@
                 _useLowNibble = !_useLowNibble;
 
                 //fill buffer
-                if(_useLowNibble)
-                    _waveBuffer = (byte)(_waveTable[_waveIndex] & 0x0F);
-                else
-                    _waveBuffer = (byte)((_waveTable[_waveIndex] & 0xF0) >> 4);
+                _sampleBuffer = _waveTable[_waveIndex];
 
-                AccessingWaveRam = true;
+                if (apuIteration == 0)
+                    _accessWaveRamApuCycle0 = true;
+                else if (apuIteration == 1)
+                    _accessWaveRamApuCycle1 = true;
 
                 ReloadFrequencyTimer();
             }
-        }        
-
-        public override byte GetSample()
-        {
-            //length enabled and DAC power
-            if (!IsEnabled())
-                return 0;
-
-            return (byte)((_waveBuffer >> _volumeShift) * 17);
-        }
-
-        public override bool IsEnabled()
-        {
-            return _isEnabled;
-        }
-
-        public override void Disable()
-        {
-            _timer = 0;
-            _isEnabled = false;
-
-            _useLowNibble = false;
-            _waveIndex = 0;
-
-            OnOff = 0;
-            OutputLevel = 0;
-            FrequencyHi = 0;
-            FrequencyLo = 0;
-
-            base.Disable();
-        }
+        }         
 
         private void Trigger()
         {
             _isEnabled = true;
 
+            HandleWaveRamCorruption();
+
             ReloadFrequencyTimer();
+
+            //magic constant to achieve obscure wave ram behavior
+            _frequencyTimer += 2;
 
             ReloadLengthCounter();
 
             //set wave index to 0 but do not reload buffer
             _waveIndex = 0;
+            _useLowNibble = false;
 
             if (IsDacDisabled())
                 _isEnabled = false;
+        }
+
+        private void HandleWaveRamCorruption()
+        {
+            if (_accessWaveRamApuCycle1)
+            {
+                if (_waveIndex <= 3)
+                    _waveTable[0] = _waveTable[_waveIndex];
+
+                else if (_waveIndex <= 7)
+                {
+                    for (int i = 0; i < 4; i++)
+                        _waveTable[i] = _waveTable[i + 4];
+                }
+                else if (_waveIndex <= 11)
+                {
+                    for (int i = 0; i < 4; i++)
+                        _waveTable[i] = _waveTable[i + 8];
+                }
+                else
+                {
+                    for (int i = 0; i < 4; i++)
+                        _waveTable[i] = _waveTable[i + 12];
+                }
+            }
         }
 
         private bool IsDacDisabled()
@@ -241,7 +222,7 @@
 
         private void ReloadFrequencyTimer()
         {
-            _timer = (2048 - _frequency) * 2;
+            _frequencyTimer = (2048 - _frequency);
         }
     }
 }
