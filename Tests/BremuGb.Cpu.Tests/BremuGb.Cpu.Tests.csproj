@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BremuGb.Cpu\BremuGb.Cpu.csproj" />
-    <ProjectReference Include="..\..\BremuGb.Memory\BremuGb.Memory.csproj" />
+    <ProjectReference Include="..\..\Src\BremuGb.Lib\BremuGb.Cpu\BremuGb.Cpu.csproj" />
+    <ProjectReference Include="..\..\Src\BremuGb.Lib\BremuGb.Memory\BremuGb.Memory.csproj" />
   </ItemGroup>
 
 </Project>

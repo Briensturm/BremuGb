@@ -3,31 +3,31 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Frontend", "BremuGb.Frontend\BremuGb.Frontend.csproj", "{979C33F9-BCEC-4B6C-9A53-3C89A2EEC01E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Frontend", "Src\BremuGb.Frontend\BremuGb.Frontend.csproj", "{979C33F9-BCEC-4B6C-9A53-3C89A2EEC01E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Cpu", "BremuGb.Cpu\BremuGb.Cpu.csproj", "{1BC0414A-E6F9-4A51-8788-A982560B47BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Cpu", "Src\BremuGb.Lib\BremuGb.Cpu\BremuGb.Cpu.csproj", "{1BC0414A-E6F9-4A51-8788-A982560B47BF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Common", "BremuGb.Common\BremuGb.Common.csproj", "{742CAFF7-4509-4DAB-AAFD-C5A837D370FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Common", "Src\BremuGb.Lib\BremuGb.Common\BremuGb.Common.csproj", "{742CAFF7-4509-4DAB-AAFD-C5A837D370FA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Memory", "BremuGb.Memory\BremuGb.Memory.csproj", "{44FE359E-4A15-484D-AE44-24832BB220D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Memory", "Src\BremuGb.Lib\BremuGb.Memory\BremuGb.Memory.csproj", "{44FE359E-4A15-484D-AE44-24832BB220D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Video", "BremuGb.Video\BremuGb.Video.csproj", "{99A5F497-EB7F-48EC-8D01-D6FBC17BFEFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Video", "Src\BremuGb.Lib\BremuGb.Video\BremuGb.Video.csproj", "{99A5F497-EB7F-48EC-8D01-D6FBC17BFEFC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Audio", "BremuGb.Audio\BremuGb.Audio.csproj", "{6A4B0698-68AE-4979-8984-439F1CBB1C67}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Audio", "Src\BremuGb.Lib\BremuGb.Audio\BremuGb.Audio.csproj", "{6A4B0698-68AE-4979-8984-439F1CBB1C67}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Input", "BremuGb.Input\BremuGb.Input.csproj", "{52F5138A-83C0-4E83-9E3C-E99527D82F6E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Input", "Src\BremuGb.Lib\BremuGb.Input\BremuGb.Input.csproj", "{52F5138A-83C0-4E83-9E3C-E99527D82F6E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Cartridge", "BremuGb.Cartridge\BremuGb.Cartridge.csproj", "{874FDFE5-CD35-4962-92CC-191E321BC17A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Cartridge", "Src\BremuGb.Lib\BremuGb.Cartridge\BremuGb.Cartridge.csproj", "{874FDFE5-CD35-4962-92CC-191E321BC17A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9FD9343C-A8A7-4602-8287-5DC34E5005D8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Cpu.Tests", "Tests\BremuGb.Cpu.Tests\BremuGb.Cpu.Tests.csproj", "{B134B345-FD78-4E85-9953-B54ADC684916}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Timer", "BremuGb.Timer\BremuGb.Timer.csproj", "{D61BFE7F-8C17-4B1D-9A55-EC02CC983C43}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.Timer", "Src\BremuGb.Lib\BremuGb.Timer\BremuGb.Timer.csproj", "{D61BFE7F-8C17-4B1D-9A55-EC02CC983C43}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{0D47978E-2E5A-4178-BB7C-78BC71A41847}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.GameBoy", "BremuGb.GameBoy\BremuGb.GameBoy.csproj", "{6DAC63A9-7858-4176-B52D-2923760CE8E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.GameBoy", "Src\BremuGb.Lib\BremuGb.GameBoy\BremuGb.GameBoy.csproj", "{6DAC63A9-7858-4176-B52D-2923760CE8E7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BremuGb.IntegrationTests", "Tests\BremuGb.IntegrationTests\BremuGb.IntegrationTests.csproj", "{C4CFB0C7-A9B6-4719-BAF2-494519718469}"
 EndProject

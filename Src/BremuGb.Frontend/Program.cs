@@ -14,7 +14,7 @@ namespace BremuGb.Frontend
                 RunWithGui();
         }
 
-        static void RunWithGui(string romPath = "halt_bug.gb")
+        static void RunWithGui(string romPath = "rom.gb")
         {
             NativeWindowSettings nativeWindowSettings = new NativeWindowSettings
             {

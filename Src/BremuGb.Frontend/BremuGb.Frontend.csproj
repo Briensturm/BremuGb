@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BremuGb.GameBoy\BremuGb.GameBoy.csproj" />
+    <ProjectReference Include="..\BremuGb.Lib\BremuGb.GameBoy\BremuGb.GameBoy.csproj" />
   </ItemGroup>
 
   <ItemGroup>
