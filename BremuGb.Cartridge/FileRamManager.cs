@@ -11,16 +11,10 @@ namespace BremuGb.Cartridge
             _filePath = filePath;
         }
 
-        public byte[] LoadRam()
+        public byte[] TryLoadRam()
         {
             if(!File.Exists(_filePath))
-            {
-                var ramData = new byte[0x8000];
-                for (int i = 0; i < ramData.Length; i++)
-                    ramData[i] = 0;
-
-                File.WriteAllBytes(_filePath, ramData);
-            }
+                return null;
 
             return File.ReadAllBytes(_filePath);
         }

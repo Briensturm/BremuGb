@@ -22,14 +22,14 @@ namespace BremuGb.Frontend.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class ShaderResource {
+    internal class IconResource {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal ShaderResource() {
+        internal IconResource() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace BremuGb.Frontend.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("BremuGb.Frontend.Resources.ShaderResource", typeof(ShaderResource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("BremuGb.Frontend.Resources.IconResource", typeof(IconResource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,42 +61,22 @@ namespace BremuGb.Frontend.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to #version 330
-        ///
-        ///out vec4 outputColor;
-        ///in vec2 texCoord;
-        ///
-        ///uniform sampler2D texture0;
-        ///
-        ///void main()
-        ///{
-        ///    outputColor = texture(texture0, texCoord);
-        ///}.
+        ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static string FragmentShader {
+        internal static byte[] Icon {
             get {
-                return ResourceManager.GetString("FragmentShader", resourceCulture);
+                object obj = ResourceManager.GetObject("Icon", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to #version 330 core
-        ///
-        ///layout(location = 0) in vec3 aPosition;
-        ///layout(location = 1) in vec2 aTexCoord;
-        ///
-        ///out vec2 texCoord;
-        ///
-        ///void main(void)
-        ///{    
-        ///    texCoord = aTexCoord;
-        ///
-        ///    gl_Position = vec4(aPosition, 1.0);
-        ///}.
+        ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static string VertexShader {
+        internal static byte[] WindowIcon {
             get {
-                return ResourceManager.GetString("VertexShader", resourceCulture);
+                object obj = ResourceManager.GetObject("WindowIcon", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

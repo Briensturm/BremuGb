@@ -2,10 +2,10 @@
 {
     internal abstract class PixelProcessingUnitStateBase : IPixelProcessingUnitState
     {
-        protected PixelProcessingUnitStateMachine _stateMachine;
+        protected PPUStateMachine _stateMachine;
         protected PixelProcessingUnitContext _context;
 
-        protected PixelProcessingUnitStateBase(PixelProcessingUnitContext context, PixelProcessingUnitStateMachine stateMachine)
+        protected PixelProcessingUnitStateBase(PixelProcessingUnitContext context, PPUStateMachine stateMachine)
         {
             _context = context;
             _stateMachine = stateMachine;

@@ -8,7 +8,7 @@ namespace BremuGb.Video
     {
         private IRandomAccessMemory _mainMemory;
 
-        private PixelProcessingUnitStateMachine _stateMachine;
+        private PPUStateMachine _stateMachine;
         internal SpriteTable SpriteTable;
 
         private int _currentLine;
@@ -149,7 +149,7 @@ namespace BremuGb.Video
         {
             _mainMemory = mainMemory;
 
-            _stateMachine = new PixelProcessingUnitStateMachine(this);
+            _stateMachine = new PPUStateMachine(this);
 
             SpriteTable = new SpriteTable();
 

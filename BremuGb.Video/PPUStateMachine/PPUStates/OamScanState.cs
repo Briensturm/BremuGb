@@ -4,7 +4,7 @@
     {
         private int _dotCounter = 0;
 
-        public OamScanState(PixelProcessingUnitContext context, PixelProcessingUnitStateMachine stateMachine) 
+        public OamScanState(PixelProcessingUnitContext context, PPUStateMachine stateMachine) 
             : base(context, stateMachine)
         {
         }

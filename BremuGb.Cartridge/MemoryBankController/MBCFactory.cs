@@ -7,34 +7,39 @@ namespace BremuGb.Cartridge.MemoryBankController
         public static IMemoryBankController CreateMBC(IRomLoader romLoader)
         {
             var romData = romLoader.LoadRom();
-            var cartridgeType = romData[0x0147];
+            var cartridgeType = (CartridgeType)romData[0x0147];
 
             switch (cartridgeType)
             {
-                case 0x00:
-                case 0x08:
-                case 0x09:
+                case CartridgeType.ROM_ONLY:
+                case CartridgeType.ROM_RAM:
+                case CartridgeType.ROM_RAM_BATTERY:
                     return new MBC0(romData);
-                case 0x01:
-                case 0x02:
-                case 0x03:
+
+                case CartridgeType.MBC1:
+                case CartridgeType.MBC1_RAM:
+                case CartridgeType.MBC1_RAM_BATTERY:
                     return new MBC1(romData);
-                case 0x05:
-                case 0x06:
+
+                case CartridgeType.MBC2:
+                case CartridgeType.MBC2_BATTERY:
                     return new MBC2(romData);
-                case 0x0F:
-                case 0x10:
-                case 0x11:
-                case 0x12:
-                case 0x13:
+
+                case CartridgeType.MBC3_TIMER_BATTERY:
+                case CartridgeType.MBC3_TIMER_RAM_BATTERY:
+                case CartridgeType.MBC3:
+                case CartridgeType.MBC3_RAM:
+                case CartridgeType.MBC3_RAM_BATTERY:
                     return new MBC3(romData);
-                case 0x19:
-                case 0x1A:
-                case 0x1B:
-                case 0x1C:
-                case 0x1D:
-                case 0x1E:
+
+                case CartridgeType.MBC5:
+                case CartridgeType.MBC5_RAM:
+                case CartridgeType.MBC5_RAM_BATTERY:
+                case CartridgeType.MBC5_RUMBLE:
+                case CartridgeType.MBC5_RUMBLE_RAM:
+                case CartridgeType.MBC5_RUMBLE_RAM_BATTERY:
                     return new MBC5(romData);
+
                 default:
                     throw new NotSupportedException($"Cartridge type 0x{cartridgeType:X2} is not supported");
             }

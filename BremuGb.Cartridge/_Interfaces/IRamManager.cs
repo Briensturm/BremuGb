@@ -3,6 +3,6 @@
     public interface IRamManager
     {
         public void SaveRam(byte[] ramData);
-        public byte[] LoadRam();
+        public byte[] TryLoadRam();
     }
 }

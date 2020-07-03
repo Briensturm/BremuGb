@@ -164,7 +164,7 @@ namespace BremuGb.Frontend
                 _gameBoy.EnableLogging();
 
             base.OnUpdateFrame(e);
-        }         
+        }   
 
         protected override void OnResize(ResizeEventArgs e)
         {

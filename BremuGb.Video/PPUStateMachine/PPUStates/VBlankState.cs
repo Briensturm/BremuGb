@@ -4,7 +4,7 @@
     {
         private int _dotCounter = 0;
 
-        public VBlankState(PixelProcessingUnitContext context, PixelProcessingUnitStateMachine stateMachine) 
+        public VBlankState(PixelProcessingUnitContext context, PPUStateMachine stateMachine) 
             : base(context, stateMachine)
         {
         }

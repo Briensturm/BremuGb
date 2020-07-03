@@ -9,9 +9,12 @@ namespace BremuGb.Cartridge.MemoryBankController
     abstract class MBCBase : IMemoryBankController, IMemoryAccessDelegate
     {
         protected byte[] _romData;
+        protected byte[] _ramData;        
 
-        protected byte _cartridgeType;
-        protected byte _romSize;
+        protected RomSizeType _romSizeType;
+        protected RamSizeType _ramSizeType;
+
+        protected CartridgeType _cartridgeType;
 
         public MBCBase(byte[] romData)
         {
@@ -21,18 +24,29 @@ namespace BremuGb.Cartridge.MemoryBankController
             if (_romData[0x0143] == 0xC0)
                 throw new NotSupportedException("CGB-only games are not supported"); 
             
-            _cartridgeType = romData[0x0147];
-            _romSize = _romData[0x0148];
+            _cartridgeType = (CartridgeType)romData[0x0147];
+
+            _romSizeType = (RomSizeType)_romData[0x0148];
+            _ramSizeType = (RamSizeType)_romData[0x0149];
+
+            _ramData = new byte[RamSizeInBytes];
         }
 
-        virtual public void LoadRam(IRamManager ramManager)
+        public void LoadRam(IRamManager ramManager)
         {
-            //mbc-cartridgetype combinations which have battery backed up ram must override this
+            if (!CartridgeCanSave)
+                return;
+
+            var data = ramManager.TryLoadRam();
+
+            if (data != null)
+                _ramData = data;
         }
 
-        virtual public void SaveRam(IRamManager ramManager)
+        public void SaveRam(IRamManager ramManager)
         {
-            //mbc-cartridgetype combinations which have battery backed up rum must override this
+            if (CartridgeCanSave)
+                ramManager.SaveRam(_ramData);
         }
 
         abstract public byte DelegateMemoryRead(ushort address);
@@ -54,6 +68,26 @@ namespace BremuGb.Cartridge.MemoryBankController
             addressList.AddRange(delegatedRamAddresses);
 
             return addressList.AsEnumerable();
+        }
+
+        protected abstract bool CartridgeCanSave { get; }
+
+        protected int RamSizeInBytes
+        {
+            get
+            {
+                return _ramSizeType switch
+                {
+                    RamSizeType.Ram_2KB   => 0x800,
+                    RamSizeType.Ram_8KB   => 0x2000,
+                    RamSizeType.Ram_32KB  => 0x8000,
+                    RamSizeType.Ram_64KB  => 0x10000,
+                    RamSizeType.Ram_128KB => 0x20000,
+
+                    RamSizeType.None => 0,
+                    _ => 0,
+                };
+            }
         }
     }
 }

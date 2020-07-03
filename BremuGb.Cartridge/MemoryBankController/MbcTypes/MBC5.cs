@@ -5,15 +5,14 @@ namespace BremuGb.Cartridge.MemoryBankController
     class MBC5 : MBCBase
     {
         private byte _romBankLower = 0x01;
-        private int _upperBit;
 
-        private bool _ramEnable = false;
+        private int _upperBit;
         private int _ramBankNumber;
-        private byte[] _ramData;
+
+        private bool _ramEnable;        
 
         public MBC5(byte[] romData) : base(romData)
         {
-            _ramData = new byte[0x2000*0xF];
         }
 
         public override byte DelegateMemoryRead(ushort address)
@@ -58,24 +57,10 @@ namespace BremuGb.Cartridge.MemoryBankController
             }
 
             else
-                throw new InvalidOperationException($"MBC5: Memory write at out of bounds address 0x{address:X4}");
+                throw new InvalidOperationException($"{GetType().Name}: Memory write at out of bounds address 0x{address:X4}");
         }
 
-        public override void LoadRam(IRamManager ramManager)
-        {
-            if (CartridgeCanSave())
-                _ramData = ramManager.LoadRam();
-        }
-
-        public override void SaveRam(IRamManager ramManager)
-        {
-            if (CartridgeCanSave())
-                ramManager.SaveRam(_ramData);
-        }
-
-        private bool CartridgeCanSave()
-        {
-            return _cartridgeType == 0x1B || _cartridgeType == 0x1E;
-        }
+        protected override bool CartridgeCanSave => _cartridgeType == CartridgeType.MBC5_RAM_BATTERY || 
+                                                    _cartridgeType == CartridgeType.MBC5_RUMBLE_RAM_BATTERY;
     }
 }

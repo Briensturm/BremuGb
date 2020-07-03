@@ -5,6 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	<OutputPath>..\bin\$(Configuration)\$(Platform)\</OutputPath>
+	<ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Resources\IconResource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>IconResource.resx</DependentUpon>
+    </Compile>
     <Compile Update="Resources\ShaderResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -25,6 +31,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Resources\IconResource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>IconResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Resources\ShaderResource.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ShaderResource.Designer.cs</LastGenOutput>

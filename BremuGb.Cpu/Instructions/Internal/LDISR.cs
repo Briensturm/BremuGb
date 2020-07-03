@@ -32,7 +32,7 @@ namespace BremuGb.Cpu.Instructions
                     {
                         //Console.WriteLine("Loading vblank isr...");
 
-                        cpuState.ProgramCounter = Interrupts.VblankInterrupt;
+                        cpuState.ProgramCounter = InterruptAddresses.VblankInterrupt;
 
                         mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(interruptFlags & 0xFE));
                     }
@@ -42,7 +42,7 @@ namespace BremuGb.Cpu.Instructions
                     {
                         //Console.WriteLine("Loading lcd stat isr...");
 
-                        cpuState.ProgramCounter = Interrupts.LcdInterrupt;
+                        cpuState.ProgramCounter = InterruptAddresses.LcdInterrupt;
 
                         //clear interrupt flag
                         mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(interruptFlags & 0xFD));
@@ -53,7 +53,7 @@ namespace BremuGb.Cpu.Instructions
                     {
                         //Console.WriteLine("Loading timer isr...");
 
-                        cpuState.ProgramCounter = Interrupts.TimerInterrupt;
+                        cpuState.ProgramCounter = InterruptAddresses.TimerInterrupt;
 
                         //clear interrupt flag
                         mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(interruptFlags & 0xFB));
@@ -62,7 +62,7 @@ namespace BremuGb.Cpu.Instructions
                     //serial interrupt
                     else if ((_readyInterrupts & 0x08) == 0x08)
                     {
-                        cpuState.ProgramCounter = Interrupts.SerialInterrupt;
+                        cpuState.ProgramCounter = InterruptAddresses.SerialInterrupt;
 
                         //clear interrupt flag
                         mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(interruptFlags & 0xF7));
@@ -71,7 +71,7 @@ namespace BremuGb.Cpu.Instructions
                     //joypad interrupt
                     else if ((_readyInterrupts & 0x10) == 0x10)
                     {
-                        cpuState.ProgramCounter = Interrupts.JoypadInterrupt;
+                        cpuState.ProgramCounter = InterruptAddresses.JoypadInterrupt;
 
                         //clear interrupt flag
                         mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(interruptFlags & 0x0F));

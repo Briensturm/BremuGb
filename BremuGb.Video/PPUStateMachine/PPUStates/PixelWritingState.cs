@@ -14,7 +14,7 @@ namespace BremuGb.Video
 
         private int _lastBackgroundPixel = 0;
 
-        public PixelWritingState(PixelProcessingUnitContext context, PixelProcessingUnitStateMachine stateMachine) 
+        public PixelWritingState(PixelProcessingUnitContext context, PPUStateMachine stateMachine) 
             : base(context, stateMachine)
         {
             _spritesToBeDrawn = new List<Sprite>();

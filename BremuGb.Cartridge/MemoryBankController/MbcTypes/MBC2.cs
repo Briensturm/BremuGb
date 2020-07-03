@@ -7,11 +7,9 @@ namespace BremuGb.Cartridge.MemoryBankController
         private byte _romBankNumber = 0x01;
 
         private bool _ramEnable;
-        private byte[] _ramData;
 
         public MBC2(byte[] romData) : base(romData)
-        {
-            _ramData = new byte[0x0200];
+        {           
         }
 
         public override byte DelegateMemoryRead(ushort address)
@@ -61,21 +59,6 @@ namespace BremuGb.Cartridge.MemoryBankController
             }
         }
 
-        public override void LoadRam(IRamManager ramManager)
-        {
-            if(CartridgeCanSave())
-                _ramData = ramManager.LoadRam();
-        }
-
-        public override void SaveRam(IRamManager ramManager)
-        {
-            if (CartridgeCanSave())
-                ramManager.SaveRam(_ramData);
-        }
-
-        private bool CartridgeCanSave()
-        {
-            return _cartridgeType == 0x06;
-        }
+        protected override bool CartridgeCanSave => _cartridgeType == CartridgeType.MBC2_BATTERY;
     }
 }

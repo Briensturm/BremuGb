@@ -52,7 +52,7 @@ namespace BremuGb
             _cpuCore = new CpuCore(mainMemoryProxy, new CpuState(), _logger);
 
             IRomLoader romLoader = new FileRomLoader(romPath);
-            _ramManager = new FileRamManager(Path.ChangeExtension(romPath, ".ram"));
+            _ramManager = new FileRamManager(Path.ChangeExtension(romPath, ".sav"));
 
             _mbc = MBCFactory.CreateMBC(romLoader);
             _mbc.LoadRam(_ramManager);

@@ -2,14 +2,14 @@
 
 namespace BremuGb.Video
 {
-    internal class PixelProcessingUnitStateMachine
+    internal class PPUStateMachine
     {
         private Dictionary<System.Type, IPixelProcessingUnitState> _states;
 
         private IPixelProcessingUnitState _currentState;
         private PixelProcessingUnitContext _context;
 
-        public PixelProcessingUnitStateMachine(PixelProcessingUnitContext context)
+        public PPUStateMachine(PixelProcessingUnitContext context)
         {
             _context = context;
             _states = new Dictionary<System.Type, IPixelProcessingUnitState>();

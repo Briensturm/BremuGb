@@ -1,5 +1,7 @@
 ﻿using System;
 
+using BremuGb.Common.Constants;
+
 namespace BremuGb.Cartridge.MemoryBankController
 {
     class MBC3 : MBCBase
@@ -11,35 +13,35 @@ namespace BremuGb.Cartridge.MemoryBankController
         private byte _hours;
         private int _days;
 
-        private bool _rtcHalt;
-
         private bool _ramEnable;
-        private byte[] _ramData;
-
+        private bool _rtcHalt;        
         private bool _prepareLatch;
 
         private int _ramBankNumber;
 
+        //TODO: Proper RTC
         public MBC3(byte[] romData) : base(romData)
         {
-            _ramData = new byte[0x8000];
         }
 
         public override byte DelegateMemoryRead(ushort address)
         {
-            if (address <= 0x3FFF)
+            //fixed first bank
+            if (address <= CartridgeConstants.FirstRomBankAddressEnd)
                 return _romData[address];
 
-            else if (address <= 0x7FFF)
-                return _romData[(_romBankNumber - 1) * 0x4000 + address];
+            //bank selectable via rom bank number
+            else if (address <= CartridgeConstants.RomAddressEnd)
+                return _romData[(_romBankNumber - 1) * CartridgeConstants.RomBankSize + address];
 
-            else if(address >= 0xA000 && address <= 0xBFFF)
+            //ram access
+            else if(address >= CartridgeConstants.CartRamAddressBegin && address <= CartridgeConstants.CartRamAddressEnd)
             {
                 if (!_ramEnable)
                     return 0;
 
                 if(_ramBankNumber >= 0 && _ramBankNumber <= 3)
-                    return _ramData[address - 0xA000 + 0x2000*_ramBankNumber];
+                    return _ramData[address - CartridgeConstants.CartRamAddressBegin + CartridgeConstants.RamBankSize*_ramBankNumber];
 
                 switch(_ramBankNumber)
                 {
@@ -58,7 +60,7 @@ namespace BremuGb.Cartridge.MemoryBankController
                 return 0;
             }
 
-            throw new InvalidOperationException($"MBC3: Memory read at out of bounds address 0x{address:X4}");
+            throw new InvalidOperationException($"{GetType().Name}: Memory read at out of bounds address 0x{address:X4}");
         }
 
         public override void DelegateMemoryWrite(ushort address, byte data)
@@ -108,21 +110,8 @@ namespace BremuGb.Cartridge.MemoryBankController
             }            
         }
 
-        public override void LoadRam(IRamManager ramManager)
-        {
-            if(CartridgeCanSave())
-                _ramData = ramManager.LoadRam();
-        }
-
-        public override void SaveRam(IRamManager ramManager)
-        {
-            if (CartridgeCanSave())
-                ramManager.SaveRam(_ramData);
-        }
-
-        private bool CartridgeCanSave()
-        {
-            return _cartridgeType == 0x10 || _cartridgeType == 0x13;
-        }
+        protected override bool CartridgeCanSave => _cartridgeType == CartridgeType.MBC3_TIMER_BATTERY ||
+                                                    _cartridgeType == CartridgeType.MBC3_RAM_BATTERY ||
+                                                    _cartridgeType == CartridgeType.MBC3_TIMER_RAM_BATTERY;
     }
 }

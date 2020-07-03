@@ -4,7 +4,7 @@
     {
         private int _dotCounter = 0;
 
-        public HBlankState(PixelProcessingUnitContext context, PixelProcessingUnitStateMachine stateMachine)
+        public HBlankState(PixelProcessingUnitContext context, PPUStateMachine stateMachine)
             : base(context, stateMachine)
         {
         }

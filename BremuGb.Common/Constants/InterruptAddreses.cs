@@ -1,6 +1,6 @@
 ﻿namespace BremuGb.Common.Constants
 {
-    static public class Interrupts
+    static public class InterruptAddresses
     {
         public const ushort VblankInterrupt = 0x0040;
         public const ushort LcdInterrupt    = 0x0048;
