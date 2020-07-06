@@ -51,7 +51,7 @@ namespace BremuGb.Video
                 {
                     //render bg and window
                     if (_context.WindowEnable == 1 && windowX <= x && windowY <= lineNo)
-                        WritePixel(GetBackgroundPixel((byte)(x + windowX), (byte)(lineNo + windowY), true), _context.BackgroundPalette, x, lineNo);
+                        WritePixel(GetBackgroundPixel((byte)(x - windowX), (byte)(lineNo - windowY), true), _context.BackgroundPalette, x, lineNo);
                     else if (_context.BackgroundEnable == 1)
                         WritePixel(GetBackgroundPixel((byte)(x + scrollX), (byte)(lineNo + scrollY)), _context.BackgroundPalette, x, lineNo);
                     else

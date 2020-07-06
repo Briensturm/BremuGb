@@ -11,8 +11,5 @@
         Rom_2MB   = 0x06,
         Rom_4MB   = 0x07,
         Rom_8MB   = 0x08,
-        Rom_1_1MB = 0x52,
-        Rom_1_2MB = 0x53,
-        Rom_1_5MB = 0x54,
     }
 }

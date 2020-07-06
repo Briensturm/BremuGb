@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	<OutputPath>..\bin\$(Configuration)\$(Platform)\</OutputPath>
+	<OutputPath>..\..\..\Bin\$(Configuration)\$(Platform)\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
