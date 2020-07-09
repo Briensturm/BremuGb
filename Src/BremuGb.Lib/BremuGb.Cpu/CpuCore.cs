@@ -1,6 +1,5 @@
 ﻿using BremuGb.Memory;
 using BremuGb.Common.Constants;
-using BremuGb.Cpu.Instructions;
 using BremuGb.Common;
 
 namespace BremuGb.Cpu
@@ -22,18 +21,13 @@ namespace BremuGb.Cpu
         {
             get
             {
-                {
-                    if (_currentInstruction == null)
-                        _currentInstruction = GetNextInstruction();
+                if (_currentInstruction == null)
+                    _currentInstruction = GetNextInstruction();
 
-                    return _currentInstruction;
-                }
+                return _currentInstruction;
             }
 
-            set
-            {
-                _currentInstruction = value;
-            }
+            set => _currentInstruction = value;
         }
 
         public CpuCore(IRandomAccessMemory mainMemory, ICpuState cpuState, Logger logger)
@@ -84,11 +78,7 @@ namespace BremuGb.Cpu
         public void Reset()
         {
             _cpuState.Reset();
-
             CurrentInstruction = null;
-
-            //set initial memory registers?
-           
         }
 
         private IInstruction GetNextInstruction()

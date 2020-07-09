@@ -26,7 +26,11 @@ namespace BremuGb.Frontend
 
 			_bufferedAudioSources = new BufferedAudioSource[4];
 			for(int i = 0; i<ChannelCount; i++)
-				_bufferedAudioSources[i] = new BufferedAudioSource();			
+				_bufferedAudioSources[i] = new BufferedAudioSource();
+
+			//noise and wave channel are panned left initially
+			_bufferedAudioSources[2].SetPosition(SoundOutputTerminal.Left);
+			_bufferedAudioSources[3].SetPosition(SoundOutputTerminal.Left);
 
 			//TODO: Start/restart the sources synchronously
 		}
@@ -40,17 +44,24 @@ namespace BremuGb.Frontend
 			ALC.CloseDevice(_alDevice);
 		}	
 		
-		public void QueueAudioSample(Channels soundChannel, byte sample)
+		internal void QueueAudioSample(Channels soundChannel, byte sample)
 		{
 			_bufferedAudioSources[(int)soundChannel].QueueSample(sample);
 		}
 
-		public void SetChannelPosition(Channels soundChannel, SoundOutputTerminal position)
+		internal void SetChannelPosition(Channels soundChannel, SoundOutputTerminal position)
 		{
 			_bufferedAudioSources[(int)soundChannel].SetPosition(position);
 		}
 
-		public void QueueBuffersIfFull()
+		internal void SetVolume(int volumeCodeLeft, int volumeCodeRight)
+        {
+			for (int i = 0; i < ChannelCount; i++)
+				_bufferedAudioSources[i].SetVolume(volumeCodeLeft, volumeCodeRight);
+		}
+
+		//TODO: Check if calling this helps keep refilling buffers
+		internal void QueueBuffersIfFull()
         {
 			for (int i = 0; i < ChannelCount; i++)
 				_bufferedAudioSources[i].QueueBufferIfFull();

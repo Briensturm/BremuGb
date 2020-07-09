@@ -29,8 +29,9 @@ namespace BremuGb.Frontend
             : base(gameWindowSettings, nativeWindowSettings)
         {
             _gameBoy = gameBoy;
-            _gameBoy.OutputTerminalChangedEvent += new EventHandler(SoundOutputTerminalChanged);
-            _gameBoy.NextFrameReadyEvent += new EventHandler(NextFrameReady);
+            _gameBoy.OutputTerminalChangedEvent += new EventHandler(OnSoundOutputTerminalChanged);
+            _gameBoy.MasterVolumeChangedEvent += new EventHandler(OnMasterVolumeChangedEvent);
+            _gameBoy.NextFrameReadyEvent += new EventHandler(OnNextFrameReady);
 
             _soundPlayer = new SoundPlayer();
             _screenRenderer = new ScreenRenderer();
@@ -39,7 +40,7 @@ namespace BremuGb.Frontend
             _stopwatch.Start();
         }
 
-        private void SoundOutputTerminalChanged(object sender, EventArgs e)
+        private void OnSoundOutputTerminalChanged(object sender, EventArgs e)
         {
             _soundPlayer.SetChannelPosition(Channels.Channel1, _gameBoy.GetOutputTerminal(Channels.Channel1));
             _soundPlayer.SetChannelPosition(Channels.Channel2, _gameBoy.GetOutputTerminal(Channels.Channel2));
@@ -47,7 +48,12 @@ namespace BremuGb.Frontend
             _soundPlayer.SetChannelPosition(Channels.Channel4, _gameBoy.GetOutputTerminal(Channels.Channel4));
         }
 
-        private void NextFrameReady(object sender, EventArgs e)
+        private void OnMasterVolumeChangedEvent(object sender, EventArgs e)
+        {
+            _soundPlayer.SetVolume(_gameBoy.GetMasterVolumeLeft(), _gameBoy.GetMasterVolumeRight());
+        }
+
+        private void OnNextFrameReady(object sender, EventArgs e)
         {
             _screenRenderer.UpdateTexture(_gameBoy.GetScreen());
         }
@@ -81,13 +87,13 @@ namespace BremuGb.Frontend
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             var timespan = _stopwatch.Elapsed;
-            if (timespan.TotalMilliseconds > 16 || _fastForward == true)
+            if (timespan.TotalMilliseconds >= 16 || _fastForward == true)
             {
                 _stopwatch.Restart();
 
                 _joypadState = GetJoypadState();
 
-                for (int i = 0; i < 16384; i++)
+                for (int i = 0; i < 17000; i++)
                 {
                     _soundPlayer.QueueAudioSample(Channels.Channel1, _gameBoy.GetAudioSample(Channels.Channel1));
                     _soundPlayer.QueueAudioSample(Channels.Channel2, _gameBoy.GetAudioSample(Channels.Channel2));
@@ -144,11 +150,11 @@ namespace BremuGb.Frontend
 
             if (KeyboardState.IsKeyDown(Key.Enter))
                 joypadState |= JoypadState.Start;
-            if (KeyboardState.IsKeyDown(Key.BackSpace))
+            if (KeyboardState.IsKeyDown(Key.ShiftLeft))
                 joypadState |= JoypadState.Select;
-            if (KeyboardState.IsKeyDown(Key.Z))
+            if (KeyboardState.IsKeyDown(Key.S))
                 joypadState |= JoypadState.A;   
-            if (KeyboardState.IsKeyDown(Key.X))
+            if (KeyboardState.IsKeyDown(Key.A))
                 joypadState |= JoypadState.B;
             if (KeyboardState.IsKeyDown(Key.Left) && KeyboardState.IsKeyUp(Key.Right))
                 joypadState |= JoypadState.Left;

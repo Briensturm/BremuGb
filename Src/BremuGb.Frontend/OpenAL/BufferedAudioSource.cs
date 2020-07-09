@@ -18,12 +18,20 @@ namespace BremuGb.Frontend.OpenAL
 
 		private int _bufferSize = 512;
 		private int _bufferCount = 20;
-
-		private int _sampleRate = 41943;	
+	
+		private int _sampleRate = 44100;
 
 		private int _currentSample;
 		private int _sampleCount;
 		private int _sampleCountAverage = 24;
+
+		private float[] _centerGainValues = new float[15] { 0.0f, 0.07f, 0.14f, 0.21f, 0.28f, 0.35f, 0.42f, 0.5f, 
+																  0.57f, 0.64f, 0.71f, 0.78f, 0.85f, 0.92f, 1.0f };
+		private float[] _singleSideGainValues = new float[8] { 0.0f, 0.07f, 0.14f, 0.21f, 0.28f, 0.35f, 0.42f, 0.5f };
+
+		private int _volumeCodeLeft  = 0x7;
+		private int _volumeCodeRight = 0x7;
+		private SoundOutputTerminal _position = SoundOutputTerminal.Center;
 
 		internal BufferedAudioSource()
 		{
@@ -53,19 +61,21 @@ namespace BremuGb.Frontend.OpenAL
 
 		internal void SetPosition(SoundOutputTerminal position)
 		{
-			switch(position)
+			_position = position;
+
+			switch (position)
 			{
 				case SoundOutputTerminal.Center:
 					AL.Source(_source, ALSource3f.Position, 0.0f, 0.0f, 0.0f);
-					AL.Source(_source, ALSourcef.Gain, 1.0f);
+					AL.Source(_source, ALSourcef.Gain, _centerGainValues[_volumeCodeLeft + _volumeCodeRight]);
 					break;
 				case SoundOutputTerminal.Left:
 					AL.Source(_source, ALSource3f.Position, -1.0f, 0.0f, 0.0f);
-					AL.Source(_source, ALSourcef.Gain, 1.0f);
+					AL.Source(_source, ALSourcef.Gain, _singleSideGainValues[_volumeCodeLeft]);
 					break;
 				case SoundOutputTerminal.Right:
 					AL.Source(_source, ALSource3f.Position, 1.0f, 0.0f, 0.0f);
-					AL.Source(_source, ALSourcef.Gain, 1.0f);
+					AL.Source(_source, ALSourcef.Gain, _singleSideGainValues[_volumeCodeRight]);
 					break;
 				case SoundOutputTerminal.None:
 					AL.Source(_source, ALSource3f.Position, 0.0f, 0.0f, 0.0f);
@@ -74,6 +84,29 @@ namespace BremuGb.Frontend.OpenAL
 					AL.Source(_source, ALSourcef.Gain, 0.0f);
 					break;
 			}
+
+			ThrowIfOpenAlError();
+		}
+
+		internal void SetVolume(int volumeCodeLeft, int volumeCodeRight)
+        {
+			_volumeCodeLeft = volumeCodeLeft;
+			_volumeCodeRight = volumeCodeRight;
+
+			switch (_position)
+			{
+				case SoundOutputTerminal.Center:
+					AL.Source(_source, ALSourcef.Gain, _centerGainValues[_volumeCodeLeft + _volumeCodeRight]);
+					break;
+				case SoundOutputTerminal.Left:
+					AL.Source(_source, ALSourcef.Gain, _singleSideGainValues[_volumeCodeLeft]);
+					break;
+				case SoundOutputTerminal.Right:
+					AL.Source(_source, ALSourcef.Gain, _singleSideGainValues[_volumeCodeRight]);
+					break;
+			}
+
+			ThrowIfOpenAlError();
 		}
 
 		internal void QueueSample(byte sample)

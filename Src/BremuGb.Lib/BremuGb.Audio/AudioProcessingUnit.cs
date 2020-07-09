@@ -10,6 +10,7 @@ namespace BremuGb.Audio
     public class AudioProcessingUnit : IMemoryAccessDelegate
     {
         public event EventHandler OutputTerminalChangedEvent;
+        public event EventHandler MasterVolumeChangedEvent;
 
         private SquareWaveSweepChannel _squareWaveSweepChannel;
         private SquareWaveChannel _squareWaveChannel;       
@@ -32,6 +33,7 @@ namespace BremuGb.Audio
         private bool _outputVinRight;
 
         private byte _channelOutputSelect;
+        private byte _oldMasterVolume;
 
         private byte ChannelOutputSelect
         {
@@ -59,10 +61,17 @@ namespace BremuGb.Audio
 
             set
             {
+                if (value == _oldMasterVolume)
+                    return;
+                
+                _oldMasterVolume = value;
+
                 _outputVinLeft = (value & 0x80) == 0x80;
                 _outputVinRight = (value & 0x08) == 0x08;
                 _masterVolumeLeft = (value & 0x70) >> 4;
                 _masterVolumeRight = value & 0x07;
+
+                NotifyMasterVolumeChanged();
             }
         }
 
@@ -124,24 +133,6 @@ namespace BremuGb.Audio
         public byte GetCurrentSample(Channels soundChannel)
         {
             return _soundChannels[(int)soundChannel].GetSample();
-            var sample = _soundChannels[(int)soundChannel].GetSample();
-
-            switch (GetOutputTerminal(soundChannel))
-            {
-                case SoundOutputTerminal.None:
-                    return 0;
-                case SoundOutputTerminal.Left:
-                    sample = (byte)(_masterVolumeLeft / 7 * sample);
-                    break;
-                case SoundOutputTerminal.Right:
-                    sample = (byte)(_masterVolumeRight / 7 * sample);
-                    break;
-                case SoundOutputTerminal.Center:
-                    sample = (byte)(((_masterVolumeLeft / 7 * sample) / 2) + (_masterVolumeRight / 7 * sample) / 2);
-                    break;
-            }
-
-            return sample;
         }
 
         public SoundOutputTerminal GetOutputTerminal(Channels soundChannel)
@@ -157,7 +148,17 @@ namespace BremuGb.Audio
                 outputTerminal |= SoundOutputTerminal.Right;
 
             return outputTerminal;
-        }        
+        }     
+        
+        public int GetMasterVolumeLeft()
+        {
+            return _masterVolumeLeft;
+        }
+
+        public int GetMasterVolumeRight()
+        {
+            return _masterVolumeRight;
+        }
 
         public void AdvanceMachineCycle()
         {
@@ -372,6 +373,11 @@ namespace BremuGb.Audio
         private void NotifyOutputTerminalChanged()
         {
             OutputTerminalChangedEvent?.Invoke(this, null);
+        }
+
+        private void NotifyMasterVolumeChanged()
+        {
+            MasterVolumeChangedEvent?.Invoke(this, null);
         }
     }
 }

@@ -34,6 +34,12 @@ namespace BremuGb
             remove { _apu.OutputTerminalChangedEvent -= value; }
         }
 
+        public event EventHandler MasterVolumeChangedEvent
+        {
+            add { _apu.MasterVolumeChangedEvent += value; }
+            remove { _apu.MasterVolumeChangedEvent -= value; }
+        }
+
         public event EventHandler NextFrameReadyEvent
         {
             add { _ppu.NextFrameReadyEvent += value; }
@@ -86,6 +92,16 @@ namespace BremuGb
         public SoundOutputTerminal GetOutputTerminal(Channels soundChannel)
         {
             return _apu.GetOutputTerminal(soundChannel);
+        }
+
+        public int GetMasterVolumeLeft()
+        {
+            return _apu.GetMasterVolumeLeft();
+        }
+
+        public int GetMasterVolumeRight()
+        {
+            return _apu.GetMasterVolumeRight();
         }
 
         public byte GetAudioSample(Channels soundChannel)
