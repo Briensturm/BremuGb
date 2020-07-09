@@ -112,10 +112,13 @@ namespace BremuGb.Cpu
 
         private byte GetRequestedAndEnabledInterrupts()
         {
-            var interruptEnable = _mainMemory.ReadByte(MiscRegisters.InterruptEnable);
-            var interruptFlags = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
+            var interruptFlags = _mainMemory.ReadByte(MiscRegisters.InterruptFlags) & 0x1F;
+            if (interruptFlags == 0)
+                return 0;
 
-            return (byte)(interruptEnable & interruptFlags & 0x1F);
+            var interruptEnable = _mainMemory.ReadByte(MiscRegisters.InterruptEnable);            
+
+            return (byte)(interruptEnable & interruptFlags);
         }
     }
 }

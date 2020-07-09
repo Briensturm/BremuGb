@@ -7,7 +7,7 @@ namespace BremuGb.Audio
         private int _timer;
         private bool _isEnabled;
 
-        internal void AdvanceClock(IEnumerable<ISoundChannel> soundChannels)
+        internal void AdvanceClock(ISoundChannel[] soundChannels)
         {
             if (!_isEnabled)
                 return;            
@@ -16,8 +16,10 @@ namespace BremuGb.Audio
             var clockEnvelope = _timer == 7;
             var clockSweep = _timer == 2 || _timer == 6;
 
-            foreach(var soundChannel in soundChannels)
+            for(int i = 0; i<soundChannels.Length; i++)            
             {
+                var soundChannel = soundChannels[i];
+
                 if (clockLength)
                     soundChannel.ClockLength();
                 else

@@ -41,6 +41,11 @@ namespace BremuGb.Frontend
             GL.UseProgram(_shaderProgramHandle);
         }
 
+        internal void Delete()
+        {
+            GL.DeleteProgram(_shaderProgramHandle);
+        }
+
         private void CompileShader(int shaderHandle)
         {
             GL.CompileShader(shaderHandle);

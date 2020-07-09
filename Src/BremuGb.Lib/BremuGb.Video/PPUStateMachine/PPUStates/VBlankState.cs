@@ -2,7 +2,8 @@
 {
     internal class VBlankState : PixelProcessingUnitStateBase
     {
-        private int _dotCounter = 0;
+        private int _dotCounter;
+        private int _vblankLineCounter;
 
         public VBlankState(PixelProcessingUnitContext context, PPUStateMachine stateMachine) 
             : base(context, stateMachine)
@@ -13,10 +14,15 @@
         {
             _dotCounter += 4;
 
-            if (_dotCounter % 456 == 0)
+            if (_dotCounter == 456)
+            {
                 _context.CurrentLine++;
+                _vblankLineCounter++;
 
-            if (_dotCounter == 4560)
+                _dotCounter = 0;
+            }
+
+            if (_vblankLineCounter == 10)
             {
                 _context.CurrentLine = 0;
                 _stateMachine.TransitionTo<OamScanState>();
@@ -31,6 +37,7 @@
         public override void Initialize(int clocks)
         {
             _dotCounter = 0;
+            _vblankLineCounter = 0;
         }
     }
 }

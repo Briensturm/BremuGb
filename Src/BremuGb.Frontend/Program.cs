@@ -1,5 +1,5 @@
-﻿using OpenToolkit.Windowing.Desktop;
-using OpenToolkit.Mathematics;
+﻿using OpenToolkit.Mathematics;
+using OpenToolkit.Windowing.Desktop;
 using OpenToolkit.Windowing.Common.Input;
 
 namespace BremuGb.Frontend
@@ -26,11 +26,11 @@ namespace BremuGb.Frontend
 
             GameWindowSettings gameWindowSettings = new GameWindowSettings
             {
-                RenderFrequency = 0,
+                RenderFrequency = 60,
                 UpdateFrequency = 0
             };
            
-            using var window = new Window(nativeWindowSettings, gameWindowSettings, new GameBoy(romPath));
+            using var window = new BremuGbWindow(nativeWindowSettings, gameWindowSettings, new GameBoy(romPath));
             window.Run();
         }
     }

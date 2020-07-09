@@ -51,5 +51,13 @@ namespace BremuGb.Frontend
         {
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
         }
+
+        internal void Delete()
+        {
+            GL.DeleteBuffer(_vertexBufferObject);
+            GL.DeleteBuffer(_elementBufferObject);
+
+            GL.DeleteVertexArray(_vertexArrayObject);
+        }
     }
 }

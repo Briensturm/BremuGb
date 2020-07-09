@@ -10,7 +10,13 @@ namespace BremuGb.Video
 {
     public class PixelProcessingUnit : IMemoryAccessDelegate
     {
-        private PixelProcessingUnitContext _context;        
+        private PixelProcessingUnitContext _context;
+
+        public event EventHandler NextFrameReadyEvent
+        {
+            add { _context.NextFrameReadyEvent += value; }
+            remove { _context.NextFrameReadyEvent -= value; }
+        }
 
         private readonly Logger _logger;
 
@@ -165,6 +171,6 @@ namespace BremuGb.Video
                 return;
 
             _context.AdvanceMachineCycle();
-        }                  
+        }        
     }
 }

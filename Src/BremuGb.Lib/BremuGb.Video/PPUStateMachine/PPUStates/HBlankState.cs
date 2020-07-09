@@ -2,7 +2,7 @@
 {
     internal class HBlankState : PixelProcessingUnitStateBase
     {
-        private int _dotCounter = 0;
+        private int _dotCounter;
 
         public HBlankState(PixelProcessingUnitContext context, PPUStateMachine stateMachine)
             : base(context, stateMachine)

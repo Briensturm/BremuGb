@@ -1,5 +1,8 @@
-﻿namespace BremuGb.Input
+﻿using System;
+
+namespace BremuGb.Input
 {
+    [Flags]
     public enum JoypadState
     {
         None = 0,

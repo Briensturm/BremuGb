@@ -33,6 +33,9 @@ namespace BremuGb.Common
 
         public void SaveLogFile(string path)
         {
+            if (!_enabled)
+                return;
+
             using (StreamWriter file = new StreamWriter(path))
             {
                 file.WriteLine(_logStringBuilder.ToString());

@@ -1,4 +1,7 @@
-﻿using BremuGb.Memory;
+﻿using System;
+using System.Collections.Generic;
+
+using BremuGb.Memory;
 using BremuGb.Common.Constants;
 using BremuGb.Video.Sprites;
 
@@ -8,8 +11,12 @@ namespace BremuGb.Video
     {
         private IRandomAccessMemory _mainMemory;
 
+        public event EventHandler NextFrameReadyEvent;
+
         private PPUStateMachine _stateMachine;
+
         internal SpriteTable SpriteTable;
+        internal List<Sprite> _spritesToBeDrawn;
 
         private int _currentLine;
 
@@ -80,6 +87,7 @@ namespace BremuGb.Video
                 }
 
                 SwapBuffers();
+                NotifyNextFrameReady();                
             }
         }
         internal int WindowTileMap { get; set; }
@@ -140,8 +148,6 @@ namespace BremuGb.Video
                 SpriteSize = (value >> 2) & 0x01;
                 SpriteEnable = (value >> 1) & 0x01;
                 BackgroundEnable = (value >> 0) & 0x01;
-
-                //interrupts?
             }
         }
 
@@ -152,6 +158,7 @@ namespace BremuGb.Video
             _stateMachine = new PPUStateMachine(this);
 
             SpriteTable = new SpriteTable();
+            _spritesToBeDrawn = new List<Sprite>();
 
             FirstTileMap = new byte[32 * 32];
             SecondTileMap = new byte[32 * 32];
@@ -168,13 +175,19 @@ namespace BremuGb.Video
             return CurrentLine == LycRegister ? 1 : 0;
         }
 
+        private void NotifyNextFrameReady()
+        {
+            NextFrameReadyEvent?.Invoke(this, null);
+        }
+
         internal void RequestVBlankInterrupt()
         {
             var currentIf = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
             _mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(currentIf | 0x01));
 
+            NotifyNextFrameReady();
+
             SwapBuffers();
-            //todo: request interrupt, but not if IF is executed
         }
 
         internal int CurrentLine
@@ -199,10 +212,11 @@ namespace BremuGb.Video
             if (ShouldStatIrqBeRaised())
                 RaiseStatInterrupt();
         }
-
+        
         private bool GetStatSignal()
         {
-            //TODO handle LCD off in signal
+            if (LcdEnable == 0)
+                return false;
 
             return ((CheckLyCoincidence() & _coincidenceInterrupt) == 0x01) ||
                 (_stateMachine.GetModeNumber() == 0 && _hblankInterrupt == 1) ||
@@ -226,8 +240,6 @@ namespace BremuGb.Video
         {
             var currentIf = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
             _mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(currentIf | 0x02));
-
-            //todo: request interrupt, but not if IF is executed
         }
     
         private void SwapBuffers()

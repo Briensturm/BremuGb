@@ -1,120 +1,122 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using BremuGb.Video.Sprites;
+﻿using BremuGb.Video.Sprites;
 
 namespace BremuGb.Video
 {
     internal class PixelWritingState : PixelProcessingUnitStateBase
     {
-        private int _dotCounter = 0;
-        private List<Sprite> _spritesToBeDrawn;
-        private IOrderedEnumerable<Sprite> _orderedSprites;
+        private int _dotCounter;       
 
-        private int _lastBackgroundPixel = 0;
+        private int _lastBackgroundPixel;
+
+        private byte[] _redValues   = new byte[] { 175, 121, 43,  8  };
+        private byte[] _greenValues = new byte[] { 203, 170, 111, 41 };
+        private byte[] _blueValues  = new byte[] { 70,  109, 95,  85 };
+
+        private byte _lineNo;
+        private byte _yPosWindow;
+        private byte _yPosBg;
+        private int _scrollX;
+        private int _scrollY;
+        private int _windowX;
+        private int _windowY;
+
+        private int _x;
 
         public PixelWritingState(PixelProcessingUnitContext context, PPUStateMachine stateMachine) 
             : base(context, stateMachine)
         {
-            _spritesToBeDrawn = new List<Sprite>();
+        }
+
+        private void RenderStuff()
+        {
+            //render bg and window
+            if (_context.WindowEnable == 1 && _windowX <= _x && _windowY <= _lineNo)
+                WritePixel(GetBackgroundPixel((byte)(_x - _windowX), _yPosWindow, true), _context.BackgroundPalette, _x, _lineNo);
+            else if (_context.BackgroundEnable == 1)
+                WritePixel(GetBackgroundPixel((byte)(_x + _scrollX), _yPosBg), _context.BackgroundPalette, _x, _lineNo);
+            else
+            {
+                //todo: what happens for a pixel if window and bg disabled?
+
+                _lastBackgroundPixel = 0;
+            }
+
+            //render the sprites
+            if (_context._spritesToBeDrawn.Count > 0)
+            {
+                WriteSpritePixel(_x);
+            }
         }
 
         public override void AdvanceMachineCycle()
         {
+            //TODO: Line 0 is different, see kirby 2
+
+            if (_dotCounter > 4 && _x < 160)
+            {
+                RenderStuff();
+                _x++;
+                RenderStuff();
+                _x++;
+                RenderStuff();
+                _x++;
+                RenderStuff();
+                _x++;
+            }
+
             _dotCounter += 4;
 
             if (_dotCounter == 168)
-            {
-                //TODO: do not draw whole scanline, implement proper scanline rendering
-                byte lineNo = (byte)_context.CurrentLine;
-                var scrollX = _context.ScrollX;
-                var scrollY = _context.ScrollY;
-
-                var windowX = _context.WindowX-7;
-                var windowY = _context.WindowY;
-
-                foreach (Sprite sprite in _context.SpriteTable.Sprites)
-                {
-                    if (SpriteInterceptsCurrentScanline(sprite))
-                        _spritesToBeDrawn.Add(sprite);
-
-                    //do not render more than 10 sprites per line
-                    if (_spritesToBeDrawn.Count == 10)
-                        break;
-                }
-
-                //sort sprites by priorities
-                _orderedSprites = _spritesToBeDrawn.OrderBy(s => s.PositionX).ThenBy(s => s.OamIndex);
-
-                for (byte x = 0; x<160; x++)
-                {
-                    //render bg and window
-                    if (_context.WindowEnable == 1 && windowX <= x && windowY <= lineNo)
-                        WritePixel(GetBackgroundPixel((byte)(x - windowX), (byte)(lineNo - windowY), true), _context.BackgroundPalette, x, lineNo);
-                    else if (_context.BackgroundEnable == 1)
-                        WritePixel(GetBackgroundPixel((byte)(x + scrollX), (byte)(lineNo + scrollY)), _context.BackgroundPalette, x, lineNo);
-                    else
-                    {
-                        //todo: what happens for a pixel if window and bg disabled?
-
-                        _lastBackgroundPixel = 0;                        
-                    }
-
-                    //render the sprites
-                    if (_spritesToBeDrawn.Count > 0)
-                    {              
-                        WriteSpritePixel(x);                        
-                    }
-                }   
-
+            {   
                 _stateMachine.TransitionTo<HBlankState>();
             }
         }
 
         private void WriteSpritePixel(int x)
         {
-            foreach(Sprite sprite in _orderedSprites)
+            for(int i = 0; i<_context._spritesToBeDrawn.Count; i++)
             {
+                var sprite = _context._spritesToBeDrawn[i];
+
                 if (!SpriteInterceptsXPosition(sprite, x))
                     continue;
 
                 var tileNumber = 0;
 
-                var tileX = x + 8 - sprite.PositionX;
-                var tileY = _context.CurrentLine + 16 - sprite.PositionY;
+                var tileX = x + 8 - sprite.GetPositionX(true);
+                var tileY = _context.CurrentLine + 16 - sprite.GetPositionY(true);
 
                 if (_context.SpriteSize == 1)
                 {
-                    if (tileY > 7 && sprite.FlipY == 0)
+                    if (tileY > 7 && sprite.GetFlipY(true) == 0)
                     {
                         tileY -= 8;
-                        tileNumber = sprite.TileNumber | 0x01;
+                        tileNumber = sprite.GetTileNumber(true) | 0x01;
                     }
-                    else if (tileY <= 7 && sprite.FlipY == 0)
+                    else if (tileY <= 7 && sprite.GetFlipY(true) == 0)
                     {
-                        tileNumber = sprite.TileNumber & 0xFE;
+                        tileNumber = sprite.GetTileNumber(true) & 0xFE;
                     }
-                    else if (tileY > 7 && sprite.FlipY == 1)
+                    else if (tileY > 7 && sprite.GetFlipY(true) == 1)
                     {
                         tileY = 15 - tileY;
-                        tileNumber = sprite.TileNumber & 0xFE;
+                        tileNumber = sprite.GetTileNumber(true) & 0xFE;
                     }
-                    else if (tileY <= 7 && sprite.FlipY == 1)
+                    else if (tileY <= 7 && sprite.GetFlipY(true) == 1)
                     {
-                        tileNumber = sprite.TileNumber | 0x01;
+                        tileNumber = sprite.GetTileNumber(true) | 0x01;
                         tileY = 7 - tileY;
                     }
                 }
                 else
                 {
-                    tileNumber = sprite.TileNumber;
+                    tileNumber = sprite.GetTileNumber(true);
 
-                    if (sprite.FlipY == 1)
+                    if (sprite.GetFlipY(true) == 1)
                         tileY = 7 - tileY;
                 }
 
-                if (sprite.FlipX == 1)
+                if (sprite.GetFlipX(true) == 1)
                     tileX = 7 - tileX;
 
                 var tileData0 = _context.TileData[(tileNumber << 4) + tileY * 2];
@@ -131,13 +133,13 @@ namespace BremuGb.Video
                 if (shade != 0)
                 {
                     //check bg priority
-                    var pixelBehindBg = sprite.BgPriority == 1 && (
+                    var pixelBehindBg = sprite.GetBgPriority(true) == 1 && (
                         _lastBackgroundPixel == 1 || _lastBackgroundPixel == 2 || _lastBackgroundPixel == 3);
 
                     if (!pixelBehindBg)
                     {
                         byte palette;
-                        if (sprite.PaletteNumber == 1)
+                        if (sprite.GetPaletteNumber(true) == 1)
                             palette = _context.ObjectPalette1;
                         else
                             palette = _context.ObjectPalette0;
@@ -152,43 +154,36 @@ namespace BremuGb.Video
 
         private bool SpriteInterceptsXPosition(Sprite sprite, int x)
         {
-            return sprite.PositionX > x && sprite.PositionX < x + 9;
-        }
-
-        private bool SpriteInterceptsCurrentScanline(Sprite sprite)
-        {
-            var spriteSize = 0;
-            if (_context.SpriteSize == 0)
-                spriteSize = 8;
-
-            if (sprite.PositionY > 0
-               && sprite.PositionY < _context.CurrentLine + 17
-               && sprite.PositionY > _context.CurrentLine + spriteSize
-               && sprite.PositionX < 168 && sprite.PositionX > 0)
-            {
-                return true;
-            }
-
-            return false;
-        }
+            return sprite.GetPositionX(true) > x && sprite.GetPositionX(true) < x + 9;
+        }        
 
         public override int GetModeNumber()
         {
             return Common.Constants.Video.PixelWritingModeNo;
-        }
+        }        
 
         public override void Initialize(int clocks)
         {
             _dotCounter = 0;
-            _spritesToBeDrawn.Clear();
+
+            _x = 0;
+
+            _lineNo = (byte)_context.CurrentLine;
+            _scrollX = _context.ScrollX;
+            _scrollY = _context.ScrollY;
+
+            _windowX = _context.WindowX - 7;
+            _windowY = _context.WindowY;            
+ 
+
+            _yPosWindow = (byte)(_lineNo - _windowY);
+            _yPosBg = (byte)(_lineNo + _scrollY);
         }
 
         private int GetBackgroundPixel(byte x, byte y, bool window = false)
         {
-            //todo: do this for 4 pixels at a time?
-
-            int tileX = x / 8;
-            int tileY = y / 8;
+            int tileX = x >> 3;
+            int tileY = y >> 3;
             int tileOffsetX = x % 8;
             int tileOffsetY = y % 8;
 
@@ -222,39 +217,11 @@ namespace BremuGb.Video
 
         internal void WritePixel(int shade, byte palette, int x, int y)
         {
-            var color = (palette >> shade * 2) & 0b11;
-            byte r, g, b;
+            var color = (palette >> shade * 2) & 0b11;            
 
-            if (color == 3)
-            {
-                r = 8;
-                g = 41;
-                b = 85;
-            }
-            else if (color == 2)
-            {
-                r = 43;
-                g = 111;
-                b = 95;
-            }
-            else if (color == 1)
-            {
-                r = 121;
-                g = 170;
-                b = 109;
-            }
-            else if (color == 0)
-            {
-                r = 175;
-                g = 203;
-                b = 70;
-            }
-            else
-                throw new InvalidOperationException("invalid shade: " + shade);
-
-            _context.WriteToScreenBitmap(r, y * 160 * 3 + x * 3);
-            _context.WriteToScreenBitmap(g, y * 160 * 3 + x * 3 + 1);
-            _context.WriteToScreenBitmap(b, y * 160 * 3 + x * 3 + 2);
+            _context.WriteToScreenBitmap(_redValues[color], y * 160 * 3 + x * 3);
+            _context.WriteToScreenBitmap(_greenValues[color], y * 160 * 3 + x * 3 + 1);
+            _context.WriteToScreenBitmap(_blueValues[color], y * 160 * 3 + x * 3 + 2);
         }
     }
 }

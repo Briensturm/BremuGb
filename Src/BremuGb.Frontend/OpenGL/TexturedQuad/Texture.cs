@@ -35,5 +35,10 @@ namespace BremuGb.Frontend
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, _textureHandle);
         }
+
+        internal void Delete()
+        {
+            GL.DeleteTexture(_textureHandle);
+        }
     }
 }

@@ -26,6 +26,11 @@ namespace BremuGb.Audio
         private int _frameSequencerTimer = 0;
         private int _frameSequencerPeriod = 2048;
 
+        private int _masterVolumeLeft;
+        private int _masterVolumeRight;
+        private bool _outputVinLeft;
+        private bool _outputVinRight;
+
         private byte _channelOutputSelect;
 
         private byte ChannelOutputSelect
@@ -40,10 +45,26 @@ namespace BremuGb.Audio
                     NotifyOutputTerminalChanged();
                 }
             }
-        }
+        }        
 
-        //TODO
-        private byte MasterVolume { get; set; }
+        private byte MasterVolume 
+        { 
+            get
+            {
+                return (byte)((_outputVinLeft ? 0x1 : 0x0) << 7 |
+                              (_masterVolumeLeft << 4) |
+                              (_outputVinRight ? 0x1 : 0x0) << 3 |
+                               _masterVolumeRight);
+            }
+
+            set
+            {
+                _outputVinLeft = (value & 0x80) == 0x80;
+                _outputVinRight = (value & 0x08) == 0x08;
+                _masterVolumeLeft = (value & 0x70) >> 4;
+                _masterVolumeRight = value & 0x07;
+            }
+        }
 
         private byte SoundOnOff
         {
@@ -96,12 +117,31 @@ namespace BremuGb.Audio
 
             //initial values after boot
             ChannelOutputSelect = 0xF3;
-            SoundOnOff = 0xF0;
+            SoundOnOff = 0xF1;
+            MasterVolume = 0x77;
         }
         
         public byte GetCurrentSample(Channels soundChannel)
         {
             return _soundChannels[(int)soundChannel].GetSample();
+            var sample = _soundChannels[(int)soundChannel].GetSample();
+
+            switch (GetOutputTerminal(soundChannel))
+            {
+                case SoundOutputTerminal.None:
+                    return 0;
+                case SoundOutputTerminal.Left:
+                    sample = (byte)(_masterVolumeLeft / 7 * sample);
+                    break;
+                case SoundOutputTerminal.Right:
+                    sample = (byte)(_masterVolumeRight / 7 * sample);
+                    break;
+                case SoundOutputTerminal.Center:
+                    sample = (byte)(((_masterVolumeLeft / 7 * sample) / 2) + (_masterVolumeRight / 7 * sample) / 2);
+                    break;
+            }
+
+            return sample;
         }
 
         public SoundOutputTerminal GetOutputTerminal(Channels soundChannel)
@@ -128,10 +168,10 @@ namespace BremuGb.Audio
                 _frameSequencer.AdvanceClock(_soundChannels);
             }
 
-            foreach(var soundChannel in _soundChannels)
-            {
-                soundChannel.AdvanceMachineCycle();
-            }
+            _squareWaveSweepChannel.AdvanceMachineCycle();
+            _squareWaveChannel.AdvanceMachineCycle();
+            _waveChannel.AdvanceMachineCycle();
+            _noiseChannel.AdvanceMachineCycle();
         }
 
         public byte DelegateMemoryRead(ushort address)

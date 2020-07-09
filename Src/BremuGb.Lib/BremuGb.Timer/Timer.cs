@@ -13,6 +13,8 @@ namespace BremuGb
         private byte _tima;
         private byte _tac;
 
+        private int[] _controlBits = new int[4] { 9, 3, 5, 7 };
+
         private readonly IRandomAccessMemory _mainMemory;
 
         private bool _loadTimaFromTmaCycle;
@@ -70,10 +72,10 @@ namespace BremuGb
                     break;
 
                 case TimerRegisters.TimerControl:
-                    var oldMuxOut = TimerEnabled && ((_div >> GetControlBit()) & 0x01) == 0x01;
+                    var oldMuxOut = TimerEnabled && ((_div >> _controlBits[_tac & 0x03]) & 0x01) == 0x01;
                     _tac = data;
 
-                    var newMuxOut = TimerEnabled && ((_div >> GetControlBit()) & 0x01) == 0x01;
+                    var newMuxOut = TimerEnabled && ((_div >> _controlBits[_tac & 0x03]) & 0x01) == 0x01;
 
                     //detect falling edge
                     if (oldMuxOut && !newMuxOut)
@@ -125,26 +127,12 @@ namespace BremuGb
 
         private bool DivFallingEdgeOccured(ushort divBefore, ushort divAfter)
         {
-            var bit = GetControlBit();
+            var bit = _controlBits[_tac & 0x03];
 
             var bitValueBefore = (divBefore >> bit) & 0x01;
             var bitValueAfter = (divAfter >> bit) & 0x01;
 
             return bitValueBefore == 1 && bitValueAfter == 0;
-        }
-
-        private int GetControlBit()
-        {
-            var freqSelect = _tac & 0x03;
-            var bit = freqSelect switch
-            {
-                0 => 9,
-                1 => 3,
-                2 => 5,
-                3 => 7,
-                _ => throw new InvalidOperationException($"Invalid timer control register state 0x{_tac:X2}"),
-            };
-            return bit;
         }        
     }
 }

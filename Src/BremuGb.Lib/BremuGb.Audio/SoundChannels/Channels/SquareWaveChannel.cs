@@ -44,6 +44,21 @@ namespace BremuGb.Audio.SoundChannels
             
             set
             {
+                //zombie-mode handling
+                if(_isEnabled)
+                {
+                    if (_envelopePeriod == 0 && _envelopeEnable)
+                        _currentVolume++;
+                    else if (!_envelopeIncrease)
+                        _currentVolume += 2;
+
+                    //if envelope mode changed
+                    if ((value & 0x8) != (_envelopeIncrease ? 0x8 : 0x0))
+                        _currentVolume = 0x10 - _currentVolume;
+
+                    _currentVolume &= 0x0F;
+                }
+
                 _initialVolume = (value & 0xF0) >> 4;
                 _envelopeIncrease = (value & 0x8) == 0x8;
                 _envelopePeriod = value & 0x7;
@@ -75,7 +90,7 @@ namespace BremuGb.Audio.SoundChannels
                 if ((value & 0x80) == 0x80)
                     Trigger();
             }
-        }        
+        }       
 
         public override void AdvanceMachineCycle()
         {
@@ -117,7 +132,7 @@ namespace BremuGb.Audio.SoundChannels
 
         public override byte GetSample()
         {            
-            if(!IsEnabled())            
+            if(!IsEnabled() || IsDacDisabled())            
                 return 0;
 
             return (byte)(_dutyPattern[_dutyPatternSelect][_dutyIndex] * _currentVolume *17);

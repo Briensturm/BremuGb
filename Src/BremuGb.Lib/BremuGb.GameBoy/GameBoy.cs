@@ -34,14 +34,18 @@ namespace BremuGb
             remove { _apu.OutputTerminalChangedEvent -= value; }
         }
 
+        public event EventHandler NextFrameReadyEvent
+        {
+            add { _ppu.NextFrameReadyEvent += value; }
+            remove { _ppu.NextFrameReadyEvent -= value; }
+        }
+
         public GameBoy(string romPath)
         {
             _logger = new Logger();
 
             IRandomAccessMemory mainMemory = new MainMemory();
-            _dmaController = new DmaController(mainMemory, _logger);
-
-            IRandomAccessMemory mainMemoryProxy = new MainMemoryDmaProxy(mainMemory, _dmaController);
+            _dmaController = new DmaController(mainMemory);
             
             _timer = new Timer(mainMemory);
             _ppu = new PixelProcessingUnit(mainMemory, _logger);
@@ -49,7 +53,7 @@ namespace BremuGb
 
             _apu = new AudioProcessingUnit();
 
-            _cpuCore = new CpuCore(mainMemoryProxy, new CpuState(), _logger);
+            _cpuCore = new CpuCore(mainMemory, new CpuState(), _logger);
 
             IRomLoader romLoader = new FileRomLoader(romPath);
             _ramManager = new FileRamManager(Path.ChangeExtension(romPath, ".sav"));
@@ -57,7 +61,8 @@ namespace BremuGb
             _mbc = MBCFactory.CreateMBC(romLoader);
             _mbc.LoadRam(_ramManager);
 
-            mainMemoryProxy.RegisterMemoryAccessDelegate(_mbc as IMemoryAccessDelegate);
+            mainMemory.RegisterMemoryAccessDelegate(_mbc as IMemoryAccessDelegate);
+            mainMemory.RegisterMemoryAccessDelegate(_dmaController);
             mainMemory.RegisterMemoryAccessDelegate(_ppu);
             mainMemory.RegisterMemoryAccessDelegate(_timer);
             mainMemory.RegisterMemoryAccessDelegate(_joypad);
@@ -68,7 +73,8 @@ namespace BremuGb
         {
             _joypad.SetJoypadState(joypadState);
 
-            _apu.AdvanceMachineCycle();
+            _apu.AdvanceMachineCycle();            
+            
             _cpuCore.AdvanceMachineCycle();
 
             _dmaController.AdvanceMachineCycle();
