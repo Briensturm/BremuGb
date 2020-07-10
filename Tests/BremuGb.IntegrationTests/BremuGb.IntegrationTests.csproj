@@ -10,45 +10,70 @@
     <PackageReference Include="nunit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-rc0001" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-rc0003" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Src\BremuGb.Lib\BremuGb.GameBoy\BremuGb.GameBoy.csproj" />
+    <ProjectReference Include="..\..\Src\BremuGb.Lib\BremuGb.Serial\BremuGb.Serial.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ExpectedScreens\Blargg\cpu_instrs.png">
+    <None Update="BlarggsIntegrationTests\ExpectedScreens\halt_bug.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="ExpectedScreens\Blargg\dmg_sound.png">
+    <None Update="BlarggsIntegrationTests\Roms\cpu_instrs.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="ExpectedScreens\Blargg\halt_bug.png">
+    <None Update="BlarggsIntegrationTests\Roms\dmg_sound.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="ExpectedScreens\Blargg\instr_timing.png">
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\bits_bank1.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="ExpectedScreens\Blargg\mem_timing.png">
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\bits_bank2.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Roms\Blargg\cpu_instrs.gb">
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\bits_mode.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Roms\Blargg\cpu_instrs_looped.gb">
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\bits_ramg.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Roms\Blargg\dmg_sound.gb">
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\ram_256kb.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Roms\Blargg\halt_bug.gb">
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\ram_64kb.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Roms\Blargg\instr_timing.gb">
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\rom_16Mb.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Roms\Blargg\mem_timing.gb">
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\rom_1Mb.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\rom_2Mb.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\rom_4Mb.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\rom_512kb.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GekkiosIntegrationTests\Roms\mbc1\rom_8Mb.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="PerformanceTests\Roms\cpu_instrs_looped.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="BlarggsIntegrationTests\Roms\halt_bug.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="BlarggsIntegrationTests\Roms\instr_timing.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="BlarggsIntegrationTests\Roms\mem_timing.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

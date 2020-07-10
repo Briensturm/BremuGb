@@ -10,6 +10,7 @@ using BremuGb.Video;
 using BremuGb.Input;
 using BremuGb.Audio;
 using BremuGb.Audio.SoundChannels;
+using BremuGb.Serial;
 
 namespace BremuGb
 {
@@ -17,106 +18,123 @@ namespace BremuGb
     {
         private readonly ICpuCore _cpuCore;
 
-        private readonly PixelProcessingUnit _ppu;
+        private readonly PixelProcessingUnit _pixelProcessingUnit;
         private readonly Timer _timer;        
         private readonly DmaController _dmaController;
-        private readonly AudioProcessingUnit _apu;
+        private readonly AudioProcessingUnit _audioProcessingUnit;
+        private readonly SerialController _serialController;
         private readonly Joypad _joypad;
 
-        private readonly IMemoryBankController _mbc;
+        private readonly IRandomAccessMemory _mainMemory;
+        private readonly IMemoryBankController _memoryBankController;
         private readonly IRamManager _ramManager;
 
         private readonly Logger _logger;
 
         public event EventHandler OutputTerminalChangedEvent
         {
-            add { _apu.OutputTerminalChangedEvent += value; }
-            remove { _apu.OutputTerminalChangedEvent -= value; }
+            add { _audioProcessingUnit.OutputTerminalChangedEvent += value; }
+            remove { _audioProcessingUnit.OutputTerminalChangedEvent -= value; }
         }
 
         public event EventHandler MasterVolumeChangedEvent
         {
-            add { _apu.MasterVolumeChangedEvent += value; }
-            remove { _apu.MasterVolumeChangedEvent -= value; }
+            add { _audioProcessingUnit.MasterVolumeChangedEvent += value; }
+            remove { _audioProcessingUnit.MasterVolumeChangedEvent -= value; }
         }
 
         public event EventHandler NextFrameReadyEvent
         {
-            add { _ppu.NextFrameReadyEvent += value; }
-            remove { _ppu.NextFrameReadyEvent -= value; }
+            add { _pixelProcessingUnit.NextFrameReadyEvent += value; }
+            remove { _pixelProcessingUnit.NextFrameReadyEvent -= value; }
         }
+
+        public event EventHandler<SerialEventArgs> SerialDataTransferedEvent
+        {
+            add { _serialController.SerialDataTransferedEvent += value; }
+            remove { _serialController.SerialDataTransferedEvent -= value; }
+        }        
 
         public GameBoy(string romPath)
         {
             _logger = new Logger();
 
-            IRandomAccessMemory mainMemory = new MainMemory();
-            _dmaController = new DmaController(mainMemory);
+            _mainMemory = new MainMemory();
+            _dmaController = new DmaController(_mainMemory);
             
-            _timer = new Timer(mainMemory);
-            _ppu = new PixelProcessingUnit(mainMemory, _logger);
+            _timer = new Timer(_mainMemory);            
             _joypad = new Joypad();
 
-            _apu = new AudioProcessingUnit();
+            _serialController = new SerialController(_mainMemory);
 
-            _cpuCore = new CpuCore(mainMemory, new CpuState(), _logger);
+            _pixelProcessingUnit = new PixelProcessingUnit(_mainMemory, _logger);
+            _audioProcessingUnit = new AudioProcessingUnit();
+
+            _cpuCore = new CpuCore(_mainMemory, new CpuState(), _logger);
 
             IRomLoader romLoader = new FileRomLoader(romPath);
             _ramManager = new FileRamManager(Path.ChangeExtension(romPath, ".sav"));
 
-            _mbc = MBCFactory.CreateMBC(romLoader);
-            _mbc.LoadRam(_ramManager);
+            _memoryBankController = MBCFactory.CreateMBC(romLoader);
+            _memoryBankController.LoadRam(_ramManager);
 
-            mainMemory.RegisterMemoryAccessDelegate(_mbc as IMemoryAccessDelegate);
-            mainMemory.RegisterMemoryAccessDelegate(_dmaController);
-            mainMemory.RegisterMemoryAccessDelegate(_ppu);
-            mainMemory.RegisterMemoryAccessDelegate(_timer);
-            mainMemory.RegisterMemoryAccessDelegate(_joypad);
-            mainMemory.RegisterMemoryAccessDelegate(_apu);
+            _mainMemory.RegisterMemoryAccessDelegate(_memoryBankController as IMemoryAccessDelegate);
+            _mainMemory.RegisterMemoryAccessDelegate(_dmaController);
+            _mainMemory.RegisterMemoryAccessDelegate(_pixelProcessingUnit);
+            _mainMemory.RegisterMemoryAccessDelegate(_timer);
+            _mainMemory.RegisterMemoryAccessDelegate(_joypad);
+            _mainMemory.RegisterMemoryAccessDelegate(_audioProcessingUnit);
+            _mainMemory.RegisterMemoryAccessDelegate(_serialController);
         }
 
         public void AdvanceMachineCycle(JoypadState joypadState)
         {
             _joypad.SetJoypadState(joypadState);
 
-            _apu.AdvanceMachineCycle();            
+            _audioProcessingUnit.AdvanceMachineCycle();            
             
             _cpuCore.AdvanceMachineCycle();
 
             _dmaController.AdvanceMachineCycle();
             _timer.AdvanceMachineCycle();
+            _serialController.AdvanceMachineCycle();
             
-            _ppu.AdvanceMachineCycle();
+            _pixelProcessingUnit.AdvanceMachineCycle();
+        }
+
+        public byte MemoryRead(ushort address)
+        {
+            return _mainMemory.ReadByte(address);
         }
 
         public SoundOutputTerminal GetOutputTerminal(Channels soundChannel)
         {
-            return _apu.GetOutputTerminal(soundChannel);
+            return _audioProcessingUnit.GetOutputTerminal(soundChannel);
         }
 
         public int GetMasterVolumeLeft()
         {
-            return _apu.GetMasterVolumeLeft();
+            return _audioProcessingUnit.GetMasterVolumeLeft();
         }
 
         public int GetMasterVolumeRight()
         {
-            return _apu.GetMasterVolumeRight();
+            return _audioProcessingUnit.GetMasterVolumeRight();
         }
 
         public byte GetAudioSample(Channels soundChannel)
         {
-            return _apu.GetCurrentSample(soundChannel);
+            return _audioProcessingUnit.GetCurrentSample(soundChannel);
         }
 
         public void SaveRam()
         {
-            _mbc.SaveRam(_ramManager);
+            _memoryBankController.SaveRam(_ramManager);
         }
 
         public byte[] GetScreen()
         {
-            return _ppu.GetScreen();
+            return _pixelProcessingUnit.GetScreen();
         }
 
         public void SaveLog(string path)

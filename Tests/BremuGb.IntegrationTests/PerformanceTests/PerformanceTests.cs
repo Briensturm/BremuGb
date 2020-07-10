@@ -16,7 +16,7 @@ namespace BremuGb.IntegrationTests
 #else
             var expectedPerformance = 50.0;
 #endif
-            var gameBoy = new GameBoy("Roms/Blargg/cpu_instrs_looped.gb");
+            var gameBoy = new GameBoy("PerformanceTests/Roms/cpu_instrs_looped.gb");
 
             Stopwatch stopWatch = new Stopwatch();
             if (!Stopwatch.IsHighResolution)
