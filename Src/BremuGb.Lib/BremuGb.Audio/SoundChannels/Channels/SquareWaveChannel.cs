@@ -90,7 +90,13 @@ namespace BremuGb.Audio.SoundChannels
                 if ((value & 0x80) == 0x80)
                     Trigger();
             }
-        }       
+        }  
+        
+        internal SquareWaveChannel()
+        {
+            LengthLoad = 0x3F;
+            Envelope = 0x00;
+        }
 
         public override void AdvanceMachineCycle()
         {

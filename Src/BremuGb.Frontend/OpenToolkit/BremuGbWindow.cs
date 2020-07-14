@@ -18,6 +18,7 @@ namespace BremuGb.Frontend
         private ScreenRenderer _screenRenderer;
 
         private Stopwatch _stopwatch;
+        private double _stopwatchOvershoot;
 
         private readonly GameBoy _gameBoy;
 
@@ -87,8 +88,12 @@ namespace BremuGb.Frontend
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             var timespan = _stopwatch.Elapsed;
-            if (timespan.TotalMilliseconds >= 16 || _fastForward == true)
+            if (timespan.TotalMilliseconds >= (16 + _stopwatchOvershoot) || _fastForward == true)
             {
+                _stopwatchOvershoot = 16 - timespan.TotalMilliseconds;
+                if (_stopwatchOvershoot > 0)
+                    _stopwatchOvershoot = 0;
+
                 _stopwatch.Restart();
 
                 _joypadState = GetJoypadState();
@@ -152,9 +157,9 @@ namespace BremuGb.Frontend
                 joypadState |= JoypadState.Start;
             if (KeyboardState.IsKeyDown(Key.ShiftLeft))
                 joypadState |= JoypadState.Select;
-            if (KeyboardState.IsKeyDown(Key.S))
-                joypadState |= JoypadState.A;   
             if (KeyboardState.IsKeyDown(Key.A))
+                joypadState |= JoypadState.A;   
+            if (KeyboardState.IsKeyDown(Key.S))
                 joypadState |= JoypadState.B;
             if (KeyboardState.IsKeyDown(Key.Left) && KeyboardState.IsKeyUp(Key.Right))
                 joypadState |= JoypadState.Left;

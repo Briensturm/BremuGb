@@ -33,6 +33,26 @@ namespace BremuGb.IntegrationTests
                 _gameBoy.AdvanceMachineCycle(Input.JoypadState.None);
         }
 
+        internal void RunUntilSerialResponse(int timeoutCycles)
+        {
+            var completedCycles = 0;
+            var serialDataReceived = false;
+
+            while (completedCycles++ < timeoutCycles)
+            {
+                _gameBoy.AdvanceMachineCycle(Input.JoypadState.None);
+
+                //once serial data is received, run for a few more cycles to receive all data
+                if (_serialData.Count > 0 && !serialDataReceived)
+                {
+                    serialDataReceived = true;
+
+                    completedCycles = 0;
+                    timeoutCycles = 20000;
+                }
+            }
+        }
+
         internal string GetSentSerialDataAsString()
         {
             var stringBuilder = new StringBuilder();
@@ -64,13 +84,13 @@ namespace BremuGb.IntegrationTests
         internal void AssertGekkioTestResult()
         {
             //gekkio's tests send a few magic numbers via serial in case of success
-            Assert.AreEqual(_serialData.Count, 6);
-            Assert.AreEqual(_serialData[0], 3);
-            Assert.AreEqual(_serialData[1], 5);
-            Assert.AreEqual(_serialData[2], 8);
-            Assert.AreEqual(_serialData[3], 13);
-            Assert.AreEqual(_serialData[4], 21);
-            Assert.AreEqual(_serialData[5], 34);
+            Assert.AreEqual(6, _serialData.Count);
+            Assert.AreEqual(3, _serialData[0]);
+            Assert.AreEqual(5, _serialData[1]);
+            Assert.AreEqual(8, _serialData[2]);
+            Assert.AreEqual(13, _serialData[3]);
+            Assert.AreEqual(21, _serialData[4]);
+            Assert.AreEqual(34, _serialData[5]);
         }
 
         internal void AssertScreen(string pathToExpectedScreen)

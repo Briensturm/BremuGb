@@ -60,6 +60,14 @@
             }
         }
 
+        internal SquareWaveSweepChannel()
+        {
+            LengthLoad = 0xBF;
+            Envelope = 0xF3;
+
+            _isEnabled = true;
+        }
+
         public override void ClockSweep()
         {
             if (_sweepTimer > 0)

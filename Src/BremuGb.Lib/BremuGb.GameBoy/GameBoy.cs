@@ -70,7 +70,8 @@ namespace BremuGb
             _pixelProcessingUnit = new PixelProcessingUnit(_mainMemory, _logger);
             _audioProcessingUnit = new AudioProcessingUnit();
 
-            _cpuCore = new CpuCore(_mainMemory, new CpuState(), _logger);
+            IRandomAccessMemory mainMemoryProxy = new MainMemoryDmaProxy(_mainMemory, _dmaController);
+            _cpuCore = new CpuCore(mainMemoryProxy, new CpuState(), _logger);
 
             IRomLoader romLoader = new FileRomLoader(romPath);
             _ramManager = new FileRamManager(Path.ChangeExtension(romPath, ".sav"));
@@ -79,7 +80,6 @@ namespace BremuGb
             _memoryBankController.LoadRam(_ramManager);
 
             _mainMemory.RegisterMemoryAccessDelegate(_memoryBankController as IMemoryAccessDelegate);
-            _mainMemory.RegisterMemoryAccessDelegate(_dmaController);
             _mainMemory.RegisterMemoryAccessDelegate(_pixelProcessingUnit);
             _mainMemory.RegisterMemoryAccessDelegate(_timer);
             _mainMemory.RegisterMemoryAccessDelegate(_joypad);
@@ -91,11 +91,11 @@ namespace BremuGb
         {
             _joypad.SetJoypadState(joypadState);
 
-            _audioProcessingUnit.AdvanceMachineCycle();            
-            
-            _cpuCore.AdvanceMachineCycle();
+            _audioProcessingUnit.AdvanceMachineCycle();
 
             _dmaController.AdvanceMachineCycle();
+            _cpuCore.AdvanceMachineCycle();
+            
             _timer.AdvanceMachineCycle();
             _serialController.AdvanceMachineCycle();
             

@@ -11,7 +11,7 @@ namespace BremuGb.Input
     public class Joypad : IMemoryAccessDelegate
     {
         private JoypadState _joypadState;
-        private int _activeKeys = 0b11;
+        private int _activeKeys = 0b00;
 
         private byte JoypadRegister
         {
@@ -23,7 +23,7 @@ namespace BremuGb.Input
                 {
                     return 0xFF;
                 }
-                else if (_activeKeys == 0b10)
+                if (_activeKeys == 0b10 || _activeKeys == 0b00)
                 {
                     //return direction keys
                     if (_joypadState.HasFlag(JoypadState.Up))
@@ -35,7 +35,7 @@ namespace BremuGb.Input
                     if (_joypadState.HasFlag(JoypadState.Right))
                         joypadRegister &= 0xFE;
                 }
-                else if(_activeKeys == 0b01)
+                if(_activeKeys == 0b01 || _activeKeys == 0b00)
                 {
                     //return button keys
                     if (_joypadState.HasFlag(JoypadState.Select))
@@ -47,8 +47,6 @@ namespace BremuGb.Input
                     if (_joypadState.HasFlag(JoypadState.A))
                         joypadRegister &= 0xFE;
                 }
-                else
-                    throw new InvalidOperationException("Cannot enable both input lines at the same time (I think)");
 
                 return joypadRegister;
             }

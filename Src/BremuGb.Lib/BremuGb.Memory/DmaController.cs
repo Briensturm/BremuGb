@@ -8,15 +8,17 @@ using BremuGb.Common.Constants;
 
 namespace BremuGb.Memory
 {
-    public class DmaController : IMemoryAccessDelegate
+    public class DmaController
     {
         private readonly IRandomAccessMemory _mainMemory;
         private byte _dmaRegister;
-        private bool _doSetupClock;
+
+        private bool _doSetupClock;        
 
         private byte _currentAddressLsb;
 
         internal bool IsDmaRunning { get; private set; }
+        internal bool IsOamLocked { get; private set; }
 
         internal byte DmaRegister
         {
@@ -45,13 +47,18 @@ namespace BremuGb.Memory
         public void AdvanceMachineCycle()
         {
             if (!IsDmaRunning)
+            {
+                IsOamLocked = false;
                 return;
+            }
 
             if (_doSetupClock)
             {
                 _doSetupClock = false;
                 return;
-            }            
+            }
+
+            IsOamLocked = true;
 
             //copy one byte per machine cycle
             var sourceByte = _mainMemory.ReadByte((ushort)((DmaRegister << 8) | _currentAddressLsb));
@@ -62,25 +69,6 @@ namespace BremuGb.Memory
             //stop dma transfer when all bytes are copied
             if (_currentAddressLsb > 0x9F)
                 IsDmaRunning = false;
-        }
-
-        public byte DelegateMemoryRead(ushort address)
-        {
-            if (address == VideoRegisters.DmaTransfer)
-                return DmaRegister;
-
-            throw new InvalidOperationException($"Invalid DMA address: 0x{address:X2}");
-        }
-
-        public void DelegateMemoryWrite(ushort address, byte data)
-        {
-            if (address == VideoRegisters.DmaTransfer)
-                DmaRegister = data;
-        }
-
-        public IEnumerable<ushort> GetDelegatedAddresses()
-        {
-            yield return VideoRegisters.DmaTransfer;
         }
     }
 }

@@ -8,7 +8,7 @@ namespace BremuGb
 {
     public class Timer : IMemoryAccessDelegate
     {
-        private ushort _div = 0xABCC;
+        private ushort _div = 0xABD0-4;
         private byte _tma;
         private byte _tima;
         private byte _tac;
@@ -42,7 +42,7 @@ namespace BremuGb
                 TimerRegisters.Divider => (byte)(_div >> 8),
                 TimerRegisters.Timer => _tima,
                 TimerRegisters.TimerLoad => _tma,
-                TimerRegisters.TimerControl => _tac,
+                TimerRegisters.TimerControl => (byte)(_tac | 0xF8),
                 _ => throw new InvalidOperationException($"0x{address:X2} is not a valid timer address"),
             };
         }
@@ -105,8 +105,6 @@ namespace BremuGb
 
                 var currentIf = _mainMemory.ReadByte(MiscRegisters.InterruptFlags);
                 _mainMemory.WriteByte(MiscRegisters.InterruptFlags, (byte)(currentIf | 0x04));
-
-                //todo: request interrupt, but not if IF is executed
             }
             else if (!TimerEnabled)
                 return;            

@@ -11,7 +11,7 @@ namespace BremuGb.Memory
         private readonly Dictionary<ushort, byte> _undelegatedMemory = new Dictionary<ushort, byte>();
 
         //todo: create memory delegate for interrupt registers (e.g. in cpu project)
-        private byte _interruptFlags;
+        private byte _interruptFlags = 0x01;
         private byte _interruptEnable;
 
         //for CGB/DMG distinction
@@ -51,7 +51,7 @@ namespace BremuGb.Memory
                     break;
             }            
             
-            return 0x00;
+            return 0xFF;
         }
 
         public void WriteByte(ushort address, byte data)
