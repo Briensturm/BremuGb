@@ -15,6 +15,15 @@ Currently unsupported:
 * CGB (Gameboy Color) emulation
 * Emulation of more obscure MBCs/Hardware
 
+## How to build and run
+BremuGb consists of a reusable emulation library and a frontend which is based on OpenTK and OpenAL libraries.
+
+Building BremuGb requires the .net core 3.1 SDK.
+
+The releases which are provided in this repository are published in framework-dependent mode and require a .net core 3.1 runtime environment to be installed on the target machine.
+
+To run BremuGb you can either specify the Gameboy rom file on the command line or drag and drop the rom onto the BremuGb executable.
+
 ## Controls
 | Key        | Function             |
 |------------|----------------------|
